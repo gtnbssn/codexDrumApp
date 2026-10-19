@@ -1,0 +1,189 @@
+/* A recurring weekly plan */
+.planner-banner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #edf1ec;
+  border: 1px solid #e4e9e1;
+  padding: 21px 25px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+.planner-banner-icon {
+  color: #92a18a;
+  background: #e4eade;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+}
+.planner-banner h3 {
+  color: #65755d;
+  font-size: 14px;
+}
+.planner-banner p {
+  color: #95a18d;
+  font-size: 10px;
+  margin-top: 6px;
+  max-width: 530px;
+}
+.plan-total {
+  margin-left: auto;
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: #9daa94;
+  white-space: nowrap;
+}
+.plan-total strong {
+  font-family: 'Manrope', sans-serif;
+  font-size: 27px;
+  letter-spacing: -1px;
+  font-weight: 600;
+  color: #7b8b6c;
+  display: block;
+  text-align: center;
+  margin-bottom: 2px;
+}
+.starter-banner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 22px;
+  border: 1px dashed #e2dace;
+  background: #faf7f1;
+  border-radius: 9px;
+  margin-bottom: 25px;
+  color: #b0a18b;
+}
+.starter-banner strong {
+  font-size: 11px;
+  color: #938570;
+  font-weight: 500;
+}
+.starter-banner p {
+  font-size: 10px;
+  color: #afa494;
+  margin-top: 4px;
+}
+.starter-banner .secondary-button {
+  margin-left: auto;
+  font-size: 10px;
+  color: #a19580;
+  padding: 10px 13px;
+}
+.planner-week {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 17px;
+}
+.planner-day {
+  padding: 19px 20px 13px;
+}
+.planner-day.is-today {
+  border-color: #dfbdae;
+}
+.day-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf0f1;
+}
+.day-heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.day-heading > span {
+  color: #aab3b9;
+  font-size: 9px;
+}
+.day-heading .tiny-label {
+  font-size: 6px;
+  background: #fff3ed;
+  padding: 3px 5px;
+  border-radius: 3px;
+}
+.day-drills {
+  margin-top: 7px;
+}
+.day-drill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+.day-drill .plan-item-icon {
+  width: 30px;
+  height: 33px;
+}
+.day-drill > div {
+  flex: 1;
+}
+.day-drill strong {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6d7b82;
+  display: block;
+}
+.day-drill > div > span {
+  font-size: 8px;
+  color: #a7b0b5;
+  display: block;
+  margin-top: 5px;
+}
+.day-drill > .icon-button {
+  padding: 4px;
+  color: #b3bdc2;
+}
+.day-drill > .play-planned {
+  color: #d78e74;
+}
+.rest-day {
+  font-size: 10px;
+  color: #b0b8bd;
+  padding: 22px 0;
+}
+.add-day-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: #a9b3b8;
+  padding: 12px 0 0;
+  width: 100%;
+}
+.add-day-button:hover {
+  color: var(--coral);
+}
+.plan-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 25px;
+}
+.plan-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  color: #819098;
+  font-size: 11px;
+}
+.plan-form input,
+.plan-form select {
+  width: 100%;
+  font-size: 12px;
+  padding: 11px;
+}
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+.form-row label {
+  width: 50%;
+}
+.plan-form .primary-button {
+  margin-top: 10px;
+}

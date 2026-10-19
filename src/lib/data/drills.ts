@@ -1,0 +1,127 @@
+import type { Drill } from '../types';
+
+// The beat grid, click engine, and instructions all read this same catalog.
+// Each sticking entry is one subdivision; accents are zero-based positions.
+export const drills: Drill[] = [
+  {
+    id: 'single-strokes',
+    name: 'Single stroke roll',
+    category: 'Rudiments',
+    description: 'The foundation of a great pocket. Make every stroke feel the same.',
+    focus: 'Even hands, effortless flow',
+    level: 'Foundation',
+    bpm: 80,
+    minutes: 5,
+    subdivision: 2,
+    sticking: ['R', 'L', 'R', 'L', 'R', 'L', 'R', 'L'],
+    accents: [0, 4],
+    instructions: [
+      'Alternate right and left hands on the eighth notes.',
+      'Keep stick heights equal. Let the sticks rebound.',
+      'Relax your grip and listen for an even sound.',
+    ],
+  },
+  {
+    id: 'double-strokes',
+    name: 'Double stroke roll',
+    category: 'Rudiments',
+    description: 'Two strokes, one smooth motion. Give the second note some love.',
+    focus: 'Rebound & control',
+    level: 'Foundation',
+    bpm: 70,
+    minutes: 5,
+    subdivision: 2,
+    sticking: ['R', 'R', 'L', 'L', 'R', 'R', 'L', 'L'],
+    accents: [0, 4],
+    instructions: [
+      'Play two strokes with each hand: RRLL.',
+      'Use rebound without letting the second stroke disappear.',
+      'Keep the space between every note identical.',
+    ],
+  },
+  {
+    id: 'paradiddle',
+    name: 'Single paradiddle',
+    category: 'Rudiments',
+    description: 'Singles meet doubles. A little coordination goes a long way.',
+    focus: 'Sticking & accents',
+    level: 'Intermediate',
+    bpm: 65,
+    minutes: 5,
+    subdivision: 2,
+    sticking: ['R', 'L', 'R', 'R', 'L', 'R', 'L', 'L'],
+    accents: [0, 4],
+    instructions: [
+      'Follow RLRR LRLL across the bar.',
+      'Accent the first note of each four-note group.',
+      'Keep unaccented strokes low and relaxed.',
+    ],
+  },
+  {
+    id: 'gap-click',
+    name: 'The disappearing click',
+    category: 'Timing',
+    description: 'Hold the groove when the click goes quiet. Find your internal clock.',
+    focus: 'Internal time',
+    level: 'Intermediate',
+    bpm: 80,
+    minutes: 3,
+    subdivision: 2,
+    sticking: ['R', 'L', 'R', 'L', 'R', 'L', 'R', 'L'],
+    accents: [0],
+    gapBars: true,
+    instructions: [
+      'Play steady eighth notes for four bars.',
+      'The click disappears every fourth bar. Keep playing.',
+      'Listen for whether you land with the returning downbeat.',
+    ],
+  },
+  {
+    id: 'accent-grid',
+    name: 'Accent explorer',
+    category: 'Coordination',
+    description: 'Give the offbeats a voice without disturbing the pulse.',
+    focus: 'Dynamic independence',
+    level: 'Intermediate',
+    bpm: 70,
+    minutes: 4,
+    subdivision: 4,
+    sticking: ['R', 'L', 'R', 'L', 'R', 'L', 'R', 'L', 'R', 'L', 'R', 'L', 'R', 'L', 'R', 'L'],
+    accents: [0, 3, 6, 9, 12],
+    instructions: [
+      'Play alternating sixteenth notes.',
+      'Accent the highlighted notes; keep the others quiet.',
+      'Feel the quarter-note pulse underneath the shifting accents.',
+    ],
+  },
+  {
+    id: 'tempo-ladder',
+    name: 'The tempo ladder',
+    category: 'Endurance',
+    description: 'Build speed patiently. Small steps, relaxed hands, lasting progress.',
+    focus: 'Speed with control',
+    level: 'Intermediate',
+    bpm: 60,
+    minutes: 4,
+    subdivision: 2,
+    sticking: ['R', 'L', 'R', 'L', 'R', 'L', 'R', 'L'],
+    accents: [0, 4],
+    tempoLadder: true,
+    instructions: [
+      'Start with relaxed, alternating eighth notes.',
+      'Tempo increases by 4 BPM every four bars, up to 240 BPM.',
+      'Stop if you feel tension. Clean playing matters more than speed.',
+    ],
+  },
+];
+
+export const categories = [
+  'All drills',
+  'Rudiments',
+  'Timing',
+  'Coordination',
+  'Endurance',
+] as const;
+export const findDrill = (id: string) => drills.find((drill) => drill.id === id) ?? drills[0];
+export const tempoAtBar = (drill: Drill, base: number, bar: number) =>
+  Math.min(240, base + (drill.tempoLadder ? Math.floor(bar / 4) * 4 : 0));

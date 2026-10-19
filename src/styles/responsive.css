@@ -1,0 +1,1534 @@
+@media (min-width: 1500px) {
+  main {
+    padding: 42px 52px 28px;
+  }
+  .practice-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 30px;
+  }
+  .practice-aside {
+    gap: 23px;
+  }
+  .tempo-workspace {
+    margin-top: 12px;
+  }
+  .tempo-dial {
+    width: 247px;
+    height: 247px;
+  }
+  .metronome-card {
+    padding: 28px 30px 0;
+  }
+  .transport {
+    margin: 0 -30px;
+    padding: 19px 30px;
+  }
+  .tempo-range {
+    margin-bottom: 30px;
+  }
+  .focus-card {
+    padding: 32px;
+    min-height: 274px;
+  }
+  .focus-card h2 {
+    font-size: 27px;
+  }
+  .focus-card p {
+    font-size: 11px;
+  }
+  .quick-drills > button {
+    padding: 14px;
+  }
+  .quick-drills strong {
+    font-size: 11px;
+  }
+  .quick-drills small {
+    font-size: 9px;
+  }
+  .analysis-card h3 {
+    font-size: 13px;
+  }
+  .analysis-content p {
+    max-width: 400px;
+    font-size: 11px;
+  }
+  .analysis-content h4 {
+    font-size: 13px;
+  }
+  .analysis-card > .section-description {
+    font-size: 10px;
+  }
+  .analysis-content .text-button {
+    font-size: 11px;
+  }
+  .analysis-footnote {
+    font-size: 9px;
+  }
+  .weekly-card h3,
+  .plan-card h3 {
+    font-size: 13px;
+  }
+  .weekly-card,
+  .plan-card {
+    padding: 24px;
+  }
+  .weekly-card > .text-button,
+  .plan-card > .text-button {
+    font-size: 10px;
+  }
+  .suggested-plan p,
+  .suggested-plan strong {
+    font-size: 11px;
+  }
+  .today-tag {
+    font-size: 11px;
+  }
+  .transport-tip {
+    font-size: 8px;
+    max-width: 150px;
+  }
+  .beat-grid > div {
+    height: 75px;
+  }
+  .session-time strong {
+    font-size: 16px;
+  }
+  .page-footer {
+    font-size: 9px;
+  }
+  .library-art {
+    height: 165px;
+  }
+  .rudiment-art {
+    height: 95px;
+  }
+}
+@media (max-width: 1190px) {
+  .sidebar {
+    width: 190px;
+    padding: 30px 14px 0;
+  }
+  .workspace {
+    margin-left: 190px;
+    width: calc(100% - 190px);
+  }
+  .sidebar-caption {
+    font-size: 6px;
+    letter-spacing: 1.1px;
+  }
+  .sidebar nav button {
+    font-size: 11px;
+    gap: 10px;
+    padding: 11px;
+  }
+  .little-note {
+    padding: 16px 14px;
+  }
+  .little-note small {
+    font-size: 6px;
+  }
+  .help-link {
+    font-size: 8px;
+  }
+  .profile strong {
+    font-size: 9px;
+  }
+  .profile small {
+    font-size: 7px;
+  }
+  .topbar {
+    padding: 0 27px;
+  }
+  .local-badge {
+    display: none;
+  }
+  main {
+    padding: 29px 27px 22px;
+  }
+  .practice-layout {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 18px;
+  }
+  .quick-drills {
+    gap: 6px;
+  }
+  .quick-drills > button {
+    padding: 11px 7px;
+    gap: 6px;
+  }
+  .quick-drills strong {
+    font-size: 8px;
+  }
+  .drill-mini-icon {
+    width: 24px;
+  }
+  .drill-mini-icon > svg {
+    width: 15px;
+  }
+  .quick-drills small {
+    font-size: 7px;
+  }
+  .metronome-card {
+    padding: 21px 20px 0;
+  }
+  .tempo-workspace {
+    gap: 27px;
+  }
+  .tempo-dial {
+    width: 205px;
+    height: 205px;
+  }
+  .bpm-number {
+    font-size: 60px;
+  }
+  .transport {
+    margin: 0 -20px;
+    padding: 16px 20px;
+    gap: 10px;
+  }
+  .transport-tip {
+    display: none;
+  }
+  .start-button {
+    min-width: 150px;
+  }
+  .focus-card {
+    padding: 24px 20px;
+  }
+  .focus-card h2 {
+    font-size: 22px;
+  }
+  .weekly-card,
+  .plan-card {
+    padding: 19px 17px;
+  }
+  .today-tag {
+    display: none;
+  }
+  .library-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .library-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .search-box input {
+    width: 100%;
+  }
+  .filter-tabs {
+    gap: 9px;
+  }
+  .progress-panels {
+    grid-template-columns: 1fr 230px;
+  }
+  .activity-chart {
+    gap: 10px;
+  }
+  .history-row {
+    grid-template-columns: minmax(160px, 1fr) 70px 95px 60px 20px;
+    gap: 10px;
+    padding: 17px;
+  }
+  .history-row.table-heading {
+    padding: 13px 17px;
+  }
+  .stat-card {
+    padding: 20px;
+  }
+  .planner-banner p {
+    max-width: 400px;
+  }
+  .starter-banner {
+    flex-wrap: wrap;
+  }
+  .starter-banner .secondary-button {
+    margin-left: 36px;
+  }
+}
+@media (max-width: 970px) {
+  .sidebar {
+    width: 175px;
+    padding: 30px 12px 0;
+  }
+  .workspace {
+    margin-left: 175px;
+    width: calc(100% - 175px);
+  }
+  main {
+    padding: 26px 23px 20px;
+  }
+  .brand {
+    font-size: 29px;
+  }
+  .sidebar-caption {
+    font-size: 5.5px;
+    letter-spacing: 1px;
+  }
+  .sidebar nav button {
+    font-size: 10px;
+    padding: 11px 9px;
+    gap: 9px;
+  }
+  .sidebar nav svg {
+    width: 17px;
+  }
+  .little-note p {
+    font-size: 12px;
+  }
+  .little-note small {
+    font-size: 5px;
+  }
+  .profile {
+    gap: 7px;
+  }
+  .avatar {
+    width: 27px;
+    height: 27px;
+    font-size: 6px;
+  }
+  .profile strong {
+    font-size: 8px;
+  }
+  .profile small {
+    font-size: 6px;
+  }
+  .topbar {
+    height: 63px;
+    padding: 0 23px;
+  }
+  .topbar-right {
+    font-size: 8px;
+  }
+  .topbar-divider {
+    display: none;
+  }
+  .breadcrumb {
+    gap: 7px;
+    font-size: 8px;
+  }
+  .breadcrumb strong {
+    font-size: 9px;
+  }
+  .practice-layout {
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: 16px;
+  }
+  .practice-aside {
+    gap: 16px;
+    padding-top: 37px;
+  }
+  h1 {
+    font-size: 30px;
+    letter-spacing: -1.3px;
+  }
+  .page-intro .eyebrow {
+    font-size: 7px;
+  }
+  .page-intro p {
+    font-size: 11px;
+  }
+  .page-intro {
+    margin-bottom: 26px;
+  }
+  .quick-drills {
+    grid-template-columns: 1fr 1fr;
+  }
+  .quick-drills > button:last-child {
+    display: none;
+  }
+  .quick-drills strong {
+    font-size: 9px;
+  }
+  .metronome-card {
+    padding: 19px 16px 0;
+  }
+  .metronome-heading h2 {
+    font-size: 18px;
+  }
+  .tempo-workspace {
+    gap: 15px;
+    margin-top: 12px;
+  }
+  .tempo-dial {
+    width: 185px;
+    height: 185px;
+  }
+  .dial-top {
+    font-size: 5px;
+  }
+  .bpm-number {
+    font-size: 54px;
+  }
+  .bpm-label {
+    font-size: 6px;
+  }
+  .dial-dots {
+    margin-top: 11px;
+  }
+  .tempo-adjust {
+    width: 28px;
+    height: 28px;
+  }
+  .tempo-range {
+    max-width: 230px;
+    margin: 19px auto 25px;
+  }
+  .beat-grid {
+    gap: 4px;
+  }
+  .beat-grid > div {
+    height: 59px;
+  }
+  .sticking-note {
+    font-size: 13px;
+  }
+  .beat-grid-label {
+    font-size: 6px;
+    letter-spacing: 0.5px;
+  }
+  .beat-grid-label > span:last-child {
+    font-size: 6px;
+    gap: 4px;
+  }
+  .transport-settings {
+    font-size: 8px;
+    gap: 10px;
+  }
+  .transport-settings select,
+  .count-in {
+    font-size: 8px;
+  }
+  .count-in input {
+    width: 10px;
+    height: 10px;
+  }
+  .volume-control {
+    gap: 2px;
+  }
+  .volume-control input {
+    width: 38px;
+  }
+  .volume-control svg {
+    width: 14px;
+  }
+  .transport {
+    margin: 0 -16px;
+    padding: 14px 16px;
+  }
+  .session-time strong {
+    font-size: 12px;
+  }
+  .session-time small {
+    font-size: 8px;
+  }
+  .start-button {
+    min-width: 130px;
+    font-size: 10px;
+  }
+  .section-title h2 {
+    font-size: 15px;
+  }
+  .section-title .text-button {
+    font-size: 9px;
+  }
+  .focus-card {
+    padding: 21px 17px;
+    min-height: 235px;
+  }
+  .focus-card .eyebrow {
+    font-size: 6px;
+  }
+  .focus-card h2 {
+    font-size: 21px;
+    margin-top: 15px;
+  }
+  .focus-card p {
+    font-size: 8px;
+  }
+  .focus-footer {
+    font-size: 5px;
+    letter-spacing: 1px;
+  }
+  .focus-art > span {
+    font-size: 43px;
+    right: 17px;
+  }
+  .weekly-card,
+  .plan-card {
+    padding: 18px 14px;
+  }
+  .weekly-card h3,
+  .plan-card h3 {
+    font-size: 10px;
+  }
+  .weekly-card > p span {
+    font-size: 8px;
+  }
+  .weekly-card > p strong {
+    font-size: 22px;
+  }
+  .week-dots i {
+    width: 18px;
+    height: 18px;
+  }
+  .weekly-card > .text-button {
+    font-size: 7px;
+  }
+  .plan-card > .text-button {
+    font-size: 7px;
+  }
+  .plan-card .tiny-label {
+    font-size: 5px;
+  }
+  .suggested-plan {
+    gap: 8px;
+  }
+  .suggested-plan .plan-item-icon {
+    width: 25px;
+    height: 30px;
+  }
+  .suggested-plan strong {
+    font-size: 8px;
+  }
+  .suggested-plan p {
+    font-size: 8px;
+  }
+  .analysis-card {
+    padding: 18px 16px 0;
+  }
+  .analysis-card h3 {
+    font-size: 10px;
+  }
+  .analysis-card > .section-description {
+    font-size: 8px;
+  }
+  .analysis-tabs {
+    gap: 18px;
+  }
+  .analysis-tabs button {
+    font-size: 9px;
+    gap: 5px;
+  }
+  .analysis-tabs button svg {
+    width: 14px;
+  }
+  .analysis-content {
+    gap: 14px;
+  }
+  .analysis-illustration {
+    width: 76px;
+    gap: 2px;
+  }
+  .analysis-content h4 {
+    font-size: 10px;
+  }
+  .analysis-content p {
+    font-size: 8px;
+  }
+  .analysis-content .text-button {
+    font-size: 8px;
+  }
+  .privacy-note {
+    margin: 0 -16px;
+    font-size: 6px;
+  }
+  .analysis-footnote {
+    font-size: 7px;
+  }
+  .stat-grid {
+    gap: 12px;
+  }
+  .stat-card {
+    padding: 17px;
+  }
+  .stat-card > span {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+    gap: 6px;
+  }
+  .stat-card > strong {
+    font-size: 30px;
+  }
+  .stat-card p {
+    font-size: 8px;
+  }
+  .progress-panels {
+    grid-template-columns: 1fr 200px;
+    gap: 12px;
+  }
+  .activity-card {
+    padding: 20px 16px;
+  }
+  .chart-controls {
+    gap: 0;
+  }
+  .chart-controls .text-button {
+    font-size: 7px;
+  }
+  .activity-card h3 {
+    font-size: 11px;
+  }
+  .activity-card .section-description {
+    font-size: 8px;
+  }
+  .goal-card {
+    padding: 20px 15px;
+  }
+  .goal-card h3 {
+    font-size: 10px;
+  }
+  .history-row {
+    grid-template-columns: minmax(150px, 1fr) 60px 75px 50px 20px;
+    gap: 6px;
+    font-size: 10px;
+    padding: 16px 12px;
+  }
+  .history-row.table-heading {
+    padding: 12px;
+    font-size: 6px;
+  }
+  .session-name {
+    gap: 8px;
+  }
+  .session-name strong {
+    font-size: 10px;
+  }
+  .session-name small {
+    font-size: 7px;
+  }
+  .history-icon {
+    width: 29px;
+    height: 32px;
+  }
+  .planner-week {
+    gap: 13px;
+  }
+  .planner-day {
+    padding: 17px 14px 12px;
+  }
+  .day-drill {
+    gap: 6px;
+  }
+  .day-drill strong {
+    font-size: 9px;
+  }
+  .day-drill > div > span {
+    font-size: 7px;
+  }
+  .day-drill .plan-item-icon {
+    display: none;
+  }
+  .day-heading h3 {
+    font-size: 11px;
+  }
+  .planner-banner p {
+    max-width: 330px;
+  }
+  .plan-total strong {
+    font-size: 23px;
+  }
+  .plan-total {
+    font-size: 6px;
+  }
+  .starter-banner {
+    padding: 18px;
+  }
+  .rest-day {
+    font-size: 8px;
+  }
+}
+@media (max-width: 800px) {
+  .sidebar {
+    width: 72px;
+    padding: 27px 10px 0;
+  }
+  .brand {
+    font-size: 0;
+    justify-content: center;
+  }
+  .brand-symbol {
+    margin: 0;
+  }
+  .brand-dot,
+  .sidebar-caption,
+  .nav-label,
+  .sidebar nav button > span,
+  .sidebar-bottom {
+    display: none;
+  }
+  .sidebar nav {
+    margin-top: 47px;
+    gap: 13px;
+  }
+  .sidebar nav button {
+    justify-content: center;
+    padding: 13px 8px;
+  }
+  .sidebar nav svg {
+    width: 20px;
+    height: 20px;
+  }
+  .workspace {
+    margin-left: 72px;
+    width: calc(100% - 72px);
+  }
+  .practice-layout {
+    grid-template-columns: minmax(0, 1fr) 210px;
+    gap: 16px;
+  }
+  .quick-drills strong {
+    font-size: 9px;
+  }
+  .progress-panels {
+    grid-template-columns: 1fr 210px;
+  }
+  .topbar-right {
+    font-size: 8px;
+  }
+  .history-row {
+    grid-template-columns: minmax(150px, 1fr) 60px 80px 50px 20px;
+  }
+  .page-count {
+    font-size: 9px;
+  }
+  .planner-banner p {
+    max-width: 290px;
+  }
+}
+@media (max-width: 680px) {
+  main {
+    padding: 25px 20px 22px;
+  }
+  .practice-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .practice-aside {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: 7px;
+    gap: 15px;
+  }
+  .focus-card {
+    display: none;
+  }
+  .weekly-card,
+  .plan-card {
+    height: 100%;
+  }
+  .today-total {
+    grid-column: 1/-1;
+    padding-top: 3px;
+  }
+  .quick-drills {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .quick-drills > button:last-child {
+    display: flex;
+  }
+  .quick-drills > button {
+    padding: 11px 8px;
+  }
+  .quick-drills strong {
+    font-size: 8px;
+  }
+  .quick-drills small {
+    font-size: 7px;
+  }
+  .drill-mini-icon {
+    width: 24px;
+  }
+  .tempo-dial {
+    width: 205px;
+    height: 205px;
+  }
+  .tempo-workspace {
+    gap: 33px;
+  }
+  .bpm-number {
+    font-size: 60px;
+  }
+  .dial-top {
+    font-size: 6px;
+  }
+  .bpm-label {
+    font-size: 6px;
+  }
+  .tempo-adjust {
+    width: 32px;
+    height: 32px;
+  }
+  .tempo-range {
+    max-width: 260px;
+  }
+  .metronome-card {
+    padding: 22px 22px 0;
+  }
+  .metronome-heading h2 {
+    font-size: 20px;
+  }
+  .beat-grid > div {
+    height: 64px;
+  }
+  .sticking-note {
+    font-size: 15px;
+  }
+  .beat-grid-label {
+    font-size: 7px;
+  }
+  .beat-grid-label > span:last-child {
+    font-size: 7px;
+  }
+  .transport-settings select,
+  .count-in {
+    font-size: 9px;
+  }
+  .volume-control input {
+    width: 55px;
+  }
+  .transport {
+    margin: 0 -22px;
+    padding: 17px 22px;
+  }
+  .session-time strong {
+    font-size: 14px;
+  }
+  .session-time small {
+    font-size: 10px;
+  }
+  .start-button {
+    min-width: 160px;
+    font-size: 11px;
+  }
+  .analysis-card h3 {
+    font-size: 12px;
+  }
+  .analysis-card > .section-description {
+    font-size: 9px;
+  }
+  .analysis-tabs button {
+    font-size: 10px;
+  }
+  .analysis-content h4 {
+    font-size: 11px;
+  }
+  .analysis-content p {
+    font-size: 9px;
+  }
+  .analysis-content .text-button {
+    font-size: 9px;
+  }
+  .analysis-illustration {
+    width: 90px;
+  }
+  .privacy-note {
+    font-size: 7px;
+  }
+  .analysis-footnote {
+    font-size: 8px;
+  }
+  .weekly-card h3,
+  .plan-card h3 {
+    font-size: 11px;
+  }
+  .suggested-plan strong {
+    font-size: 9px;
+  }
+  .suggested-plan p {
+    font-size: 9px;
+  }
+  .weekly-card > .text-button,
+  .plan-card > .text-button {
+    font-size: 8px;
+  }
+  .topbar-right {
+    display: none;
+  }
+  .page-intro {
+    align-items: flex-start;
+  }
+  .page-intro h1 {
+    font-size: 29px;
+    letter-spacing: -1.1px;
+  }
+  .library-grid {
+    gap: 14px;
+  }
+  .library-card-body {
+    padding: 16px;
+  }
+  .library-art {
+    height: 130px;
+    padding: 14px;
+  }
+  .rudiment-art {
+    gap: 4px;
+    height: 73px;
+  }
+  .rudiment-art span {
+    font-size: 9px;
+    width: 19px;
+    height: 26px;
+  }
+  .library-card h2 {
+    font-size: 16px;
+  }
+  .library-card-body .section-heading {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .library-card p {
+    font-size: 10px;
+    min-height: 68px;
+  }
+  .library-card-meta .text-button {
+    width: 100%;
+    margin-left: 0;
+  }
+  .filter-tabs {
+    gap: 3px;
+  }
+  .filter-tabs button {
+    padding: 8px 9px;
+    font-size: 10px;
+  }
+  .progress-panels {
+    grid-template-columns: 1fr 170px;
+    gap: 12px;
+  }
+  .stat-card > span {
+    font-size: 6px;
+    letter-spacing: 0.2px;
+  }
+  .stat-card > span svg {
+    width: 14px;
+  }
+  .stat-card {
+    padding: 15px;
+  }
+  .stat-card p {
+    font-size: 7px;
+  }
+  .stat-card > strong {
+    font-size: 28px;
+  }
+  .stat-card > strong small {
+    font-size: 11px;
+  }
+  .goal-card h3 {
+    font-size: 9px;
+  }
+  .goal-card .section-heading {
+    gap: 2px;
+  }
+  .goal-card .section-heading > svg {
+    width: 15px;
+  }
+  .activity-card .section-heading {
+    align-items: flex-start;
+  }
+  .activity-card .chart-controls {
+    gap: 0;
+  }
+  .chart-controls .text-button {
+    display: none;
+  }
+  .activity-chart {
+    gap: 5px;
+    padding-left: 20px;
+  }
+  .chart-column small {
+    font-size: 7px;
+  }
+  .chart-grid > span {
+    font-size: 7px;
+  }
+  .activity-card {
+    padding: 18px 13px;
+  }
+  .history-row {
+    grid-template-columns: minmax(140px, 1fr) 55px 65px 20px;
+    gap: 7px;
+  }
+  .history-row > span:nth-child(4) {
+    display: none;
+  }
+  .history-row.table-heading > span:nth-child(4) {
+    display: none;
+  }
+  .history-row.table-heading {
+    font-size: 6px;
+  }
+  .backup-buttons .secondary-button {
+    font-size: 0;
+    padding: 10px;
+    gap: 0;
+  }
+  .backup-buttons .secondary-button > svg {
+    width: 16px;
+  }
+  .backup-buttons .bordered {
+    width: 35px;
+  }
+  .planner-week {
+    grid-template-columns: 1fr;
+  }
+  .day-drill strong {
+    font-size: 11px;
+  }
+  .day-drill > div > span {
+    font-size: 9px;
+  }
+  .day-drill .plan-item-icon {
+    display: flex;
+  }
+  .day-drill {
+    gap: 10px;
+  }
+  .day-heading h3 {
+    font-size: 12px;
+  }
+  .day-heading > span {
+    font-size: 10px;
+  }
+  .planner-banner {
+    padding: 17px 18px;
+    gap: 12px;
+  }
+  .planner-banner-icon {
+    display: none;
+  }
+  .planner-banner h3 {
+    font-size: 13px;
+  }
+  .planner-banner p {
+    font-size: 9px;
+    max-width: 320px;
+  }
+  .planner-banner .plan-total {
+    display: none;
+  }
+  .page-intro > .primary-button {
+    font-size: 0;
+    padding: 11px;
+    gap: 0;
+  }
+  .page-intro > .primary-button svg {
+    width: 20px;
+    height: 20px;
+  }
+  .starter-banner {
+    gap: 10px;
+  }
+  .starter-banner p {
+    font-size: 9px;
+  }
+  .starter-banner .secondary-button {
+    margin-left: 31px;
+    font-size: 9px;
+  }
+  .rest-day {
+    font-size: 10px;
+  }
+  .plan-card .tiny-label {
+    font-size: 6px;
+  }
+  .modal {
+    padding: 32px;
+  }
+  .modal h2 {
+    font-size: 24px;
+  }
+  .page-footer {
+    font-size: 7px;
+  }
+  .page-footer > span:first-child {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+}
+@media (max-width: 480px) {
+  .sidebar {
+    width: 0;
+    padding: 0;
+    inset: auto 0 0;
+    width: 100%;
+    height: 61px;
+    flex-direction: row;
+    border-right: 0;
+    border-top: 1px solid #e2e6e8;
+    box-shadow: 0 -3px 15px #26333b07;
+    background: #fffffff5;
+    backdrop-filter: blur(15px);
+  }
+  .brand {
+    display: none;
+  }
+  .sidebar nav {
+    margin: 0;
+    flex-direction: row;
+    width: 100%;
+    gap: 0;
+    align-items: center;
+    justify-content: space-around;
+    padding: 6px 4px;
+  }
+  .sidebar nav button {
+    padding: 6px 3px;
+    background: transparent !important;
+    border-radius: 7px;
+    flex-direction: column;
+    gap: 5px;
+    width: 23%;
+    font-size: 7px;
+  }
+  .sidebar nav button > span:first-of-type {
+    display: block;
+    font-size: 7px;
+    line-height: 1;
+  }
+  .sidebar nav button > span.nav-active-dot {
+    display: none;
+  }
+  .sidebar nav button > svg {
+    width: 18px;
+    height: 18px;
+  }
+  .workspace {
+    width: 100%;
+    margin-left: 0;
+    margin-bottom: 61px;
+  }
+  .topbar {
+    height: 49px;
+    padding: 0 21px;
+  }
+  .breadcrumb {
+    font-size: 8px;
+  }
+  .breadcrumb strong {
+    font-size: 9px;
+  }
+  main {
+    padding: 25px 20px 20px;
+  }
+  .page-intro .eyebrow {
+    font-size: 6px;
+    letter-spacing: 1.5px;
+  }
+  .page-intro h1 {
+    font-size: 29px;
+  }
+  .page-intro p {
+    font-size: 10px;
+  }
+  .page-intro {
+    margin-bottom: 28px;
+  }
+  .section-title h2 {
+    font-size: 15px;
+  }
+  .quick-drills > button {
+    padding: 11px 8px;
+    gap: 7px;
+  }
+  .quick-drills > button:last-child {
+    display: none;
+  }
+  .quick-drills {
+    grid-template-columns: 1fr 1fr;
+  }
+  .quick-drills strong {
+    font-size: 10px;
+  }
+  .drill-mini-icon {
+    width: 28px;
+  }
+  .quick-drills small {
+    font-size: 8px;
+  }
+  .metronome-card {
+    padding: 20px 18px 0;
+  }
+  .tempo-workspace {
+    gap: 25px;
+    margin-top: 13px;
+  }
+  .tempo-dial {
+    width: 205px;
+    height: 205px;
+  }
+  .tempo-range {
+    max-width: 250px;
+  }
+  .metronome-heading h2 {
+    font-size: 19px;
+  }
+  .metronome-heading p {
+    font-size: 9px;
+  }
+  .time-signature {
+    font-size: 22px;
+  }
+  .time-signature small {
+    font-size: 5px;
+  }
+  .beat-grid {
+    gap: 5px;
+  }
+  .beat-grid > div {
+    height: 59px;
+  }
+  .beat-grid-label {
+    font-size: 6px;
+  }
+  .beat-grid-label > span:last-child {
+    font-size: 6px;
+  }
+  .transport {
+    margin: 0 -18px;
+    padding: 16px 18px;
+  }
+  .transport-settings {
+    gap: 7px;
+  }
+  .transport-settings select,
+  .count-in {
+    font-size: 8px;
+  }
+  .volume-control input {
+    width: 38px;
+  }
+  .session-time strong {
+    font-size: 13px;
+  }
+  .start-button {
+    min-width: 148px;
+  }
+  .analysis-card h3 {
+    font-size: 11px;
+  }
+  .analysis-card .heading-with-icon {
+    gap: 6px;
+  }
+  .analysis-card .heading-with-icon > svg {
+    width: 16px;
+  }
+  .analysis-card > .section-description {
+    font-size: 8px;
+  }
+  .analysis-content {
+    gap: 13px;
+  }
+  .analysis-content p {
+    font-size: 8px;
+  }
+  .analysis-content h4 {
+    font-size: 10px;
+  }
+  .analysis-illustration {
+    width: 75px;
+  }
+  .analysis-footnote {
+    font-size: 7px;
+  }
+  .privacy-note {
+    font-size: 6px;
+  }
+  .practice-aside {
+    gap: 12px;
+  }
+  .weekly-card,
+  .plan-card {
+    padding: 17px 13px;
+  }
+  .weekly-card h3,
+  .plan-card h3 {
+    font-size: 10px;
+  }
+  .weekly-card .section-heading svg {
+    width: 14px;
+  }
+  .weekly-card > p > span {
+    font-size: 7px;
+  }
+  .weekly-card > .text-button,
+  .plan-card > .text-button {
+    font-size: 7px;
+  }
+  .suggested-plan strong {
+    font-size: 8px;
+  }
+  .suggested-plan p {
+    font-size: 7px;
+  }
+  .suggested-plan {
+    gap: 6px;
+  }
+  .suggested-plan .plan-item-icon {
+    width: 22px;
+    height: 27px;
+  }
+  .week-dots i {
+    width: 17px;
+    height: 17px;
+  }
+  .today-total {
+    font-size: 7px;
+  }
+  .page-footer {
+    margin-top: 23px;
+    font-size: 6px;
+  }
+  .page-footer > span:first-child {
+    font-size: 5px;
+  }
+  .library-toolbar {
+    gap: 15px;
+  }
+  .filter-tabs {
+    gap: 2px;
+  }
+  .filter-tabs button {
+    font-size: 8px;
+    padding: 8px;
+  }
+  .library-grid {
+    grid-template-columns: 1fr;
+  }
+  .library-card p {
+    min-height: 0;
+    font-size: 11px;
+  }
+  .library-art {
+    height: 140px;
+  }
+  .rudiment-art {
+    gap: 8px;
+    height: 80px;
+  }
+  .rudiment-art span {
+    width: 26px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .library-card-body {
+    padding: 22px;
+  }
+  .library-card h2 {
+    font-size: 20px;
+  }
+  .library-card-body .eyebrow {
+    font-size: 7px;
+  }
+  .library-card-body .tiny-label {
+    font-size: 8px;
+  }
+  .library-card-meta {
+    font-size: 9px;
+    gap: 13px;
+  }
+  .library-card-meta .text-button {
+    margin-left: auto;
+    width: auto;
+    font-size: 9px;
+  }
+  .page-count {
+    display: none;
+  }
+  .stat-grid {
+    gap: 8px;
+  }
+  .stat-card {
+    padding: 15px 11px;
+  }
+  .stat-card > span {
+    font-size: 5px;
+    gap: 4px;
+  }
+  .stat-card > span svg {
+    width: 12px;
+  }
+  .stat-card > strong {
+    font-size: 25px;
+    letter-spacing: -0.8px;
+  }
+  .stat-card > strong small {
+    font-size: 8px;
+  }
+  .stat-card p {
+    font-size: 6px;
+  }
+  .progress-panels {
+    display: flex;
+    flex-direction: column;
+  }
+  .activity-card {
+    padding: 23px 20px;
+  }
+  .activity-card h3 {
+    font-size: 13px;
+  }
+  .activity-card .section-description {
+    font-size: 9px;
+  }
+  .activity-chart {
+    padding-left: 26px;
+    gap: 12px;
+    height: 180px;
+  }
+  .chart-column small {
+    font-size: 8px;
+  }
+  .chart-grid > span {
+    font-size: 8px;
+  }
+  .chart-controls .text-button {
+    display: block;
+    font-size: 8px;
+  }
+  .goal-card {
+    padding: 23px;
+  }
+  .goal-card h3 {
+    font-size: 12px;
+  }
+  .goal-circle {
+    width: 110px;
+    height: 110px;
+    margin: 16px auto 12px;
+  }
+  .goal-circle > div {
+    width: 98px;
+    height: 98px;
+  }
+  .goal-card p br {
+    display: none;
+  }
+  .goal-card p {
+    font-size: 10px;
+  }
+  .goal-card > .text-button {
+    font-size: 10px;
+  }
+  .history-row {
+    grid-template-columns: minmax(145px, 1fr) 48px 58px 17px;
+    gap: 5px;
+    font-size: 9px;
+    padding: 15px 10px;
+  }
+  .session-name strong {
+    font-size: 9px;
+  }
+  .session-name small {
+    font-size: 6px;
+  }
+  .history-icon {
+    width: 24px;
+    height: 29px;
+  }
+  .history-icon > svg {
+    width: 14px;
+  }
+  .session-name {
+    gap: 6px;
+  }
+  .history-row.table-heading {
+    padding: 12px 10px;
+  }
+  .history-row > span > small {
+    font-size: 6px;
+  }
+  .history-section .section-title h2 {
+    font-size: 14px;
+  }
+  .history-section .muted {
+    font-size: 8px;
+  }
+  .empty-state {
+    padding: 40px 16px;
+  }
+  .empty-state h2 {
+    font-size: 18px;
+  }
+  .empty-state p {
+    font-size: 9px;
+  }
+  .empty-state p br {
+    display: none;
+  }
+  .storage-caption {
+    font-size: 8px;
+    line-height: 1.8;
+  }
+  .modal-backdrop {
+    padding: 14px;
+  }
+  .modal {
+    padding: 30px 24px;
+    max-height: calc(100dvh - 28px);
+    border-radius: 12px;
+  }
+  .modal h2 {
+    font-size: 23px;
+  }
+  .modal > .eyebrow {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .modal > p {
+    font-size: 11px;
+  }
+  .modal-actions button {
+    font-size: 10px;
+    padding: 11px 14px;
+  }
+  .modal-actions {
+    gap: 8px;
+  }
+  .summary-metrics {
+    gap: 10px;
+  }
+  .summary-metrics strong {
+    font-size: 20px;
+  }
+  .summary-metrics span {
+    font-size: 7px;
+  }
+  .planner-banner p {
+    font-size: 9px;
+  }
+  .starter-banner strong {
+    font-size: 10px;
+  }
+  .starter-banner p {
+    font-size: 8px;
+  }
+  .starter-banner .secondary-button {
+    font-size: 9px;
+  }
+  .sensor-settings {
+    gap: 18px;
+  }
+  .sensor-settings label {
+    font-size: 8px;
+  }
+  .detail-sticking {
+    gap: 5px;
+  }
+  .detail-sticking > span {
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
