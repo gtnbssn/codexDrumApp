@@ -73,6 +73,7 @@
           ? `Average ${Math.abs(Math.round(session.timing.meanOffsetMs))} ms ${session.timing.meanOffsetMs < 0 ? 'early' : 'late'}. Spread: ${Math.round(session.timing.consistencyMs)} ms.`
           : 'No hits matched. Check microphone input, threshold, and latency before your next session.'}
         Device latency can affect these estimates.
+        {#if session.latencyMs !== undefined}Compensation: {session.latencyMs} ms.{/if}
       </p>
     {/if}
     {#if session.strokes}<p class="fine-print">

@@ -28,6 +28,16 @@ describe('backup validation', () => {
     expect(validateData(valid())).toBe(true);
     expect(validateData({ version: 1, weeklyGoal: 60, plan: [], sessions: [] })).toBe(true);
   });
+  it('accepts old sessions and a recorded compensation, while rejecting corrupt compensation', () => {
+    const data = valid();
+    expect(validateData(data)).toBe(true);
+    data.sessions[0].latencyMs = 187;
+    expect(validateData(data)).toBe(true);
+    data.sessions[0].latencyMs = -201;
+    expect(validateData(data)).toBe(false);
+    data.sessions[0].latencyMs = Number.NaN;
+    expect(validateData(data)).toBe(false);
+  });
   it('rejects malformed sessions, dates, sensors, and invalid settings', () => {
     for (const data of [
       null,

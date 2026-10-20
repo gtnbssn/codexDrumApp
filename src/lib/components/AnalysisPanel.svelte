@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Mic, Video, ArrowUpRight, ShieldCheck, Info } from '@lucide/svelte';
+  import { audioSettings, setLatency, setThreshold } from '../stores/audio-settings.svelte';
   let {
     micEnabled,
     cameraEnabled,
@@ -9,8 +10,8 @@
     hits,
     strokes,
     motion,
-    threshold = $bindable(0.035),
-    latency = $bindable(0),
+    calibrate,
+    calibrationNotice,
     video = $bindable<HTMLVideoElement | undefined>(),
     toggleMic,
     toggleCamera,
@@ -24,14 +25,16 @@
     hits: number;
     strokes: { left: number; right: number };
     motion: number[];
-    threshold?: number;
-    latency?: number;
+    calibrate: () => void;
+    calibrationNotice: string;
     video?: HTMLVideoElement;
     toggleMic: () => void;
     toggleCamera: () => void;
     error: string;
   } = $props();
   let tab = $state<'mic' | 'camera'>('mic');
+  let threshold = $derived(audioSettings.threshold);
+  let latency = $derived(audioSettings.latencyMs);
 </script>
 
 <section class="analysis-card card">
@@ -73,6 +76,46 @@
         </button>
       </div>
     </div>
+    <section class="latency-settings" aria-labelledby="latency-heading">
+      <div class="section-heading">
+        <h4 id="latency-heading">Audio latency</h4>
+        <button class="secondary-button" disabled={busy || running} onclick={calibrate}>
+          Calibrate latency
+        </button>
+      </div>
+      <p class="fine-print">
+        Point a headphone cup at your microphone for a short click test. You don’t need to start a
+        practice session.
+      </p>
+      <label class="latency-value">
+        Compensation (ms)
+        <input
+          aria-label="Latency compensation in milliseconds"
+          type="number"
+          min="-200"
+          max="1000"
+          step="1"
+          value={latency}
+          oninput={(event) => setLatency(event.currentTarget.valueAsNumber)}
+          disabled={running}
+        />
+      </label>
+      <p class="fine-print">
+        {#if audioSettings.calibration}
+          Measured {audioSettings.calibration.latencyMs} ms · repeatability ±{audioSettings
+            .calibration.jitterMs} ms. Measured {new Date(
+            audioSettings.calibration.measuredAt,
+          ).toLocaleDateString()}.
+          {#if audioSettings.calibration.threshold !== threshold}Detection threshold changed;
+            recalibrate for this setting.{/if}
+        {:else}Manual compensation. Positive values shift detected hits earlier.{/if}
+        Recalibrate when your audio setup changes.
+      </p>
+      {#if calibrationNotice}<p class="inline-error" role="status">{calibrationNotice}</p>{/if}
+      {#if audioSettings.warning}<p class="inline-error" role="alert">
+          {audioSettings.warning}
+        </p>{/if}
+    </section>
     {#if micEnabled}
       <div
         class="input-meter"
@@ -88,25 +131,15 @@
             min="0.005"
             max="0.15"
             step="0.005"
-            bind:value={threshold}
-            disabled={running}
-          />
-        </label>
-        <label>
-          Latency compensation <span>{latency} ms</span>
-          <input
-            type="range"
-            min="-200"
-            max="200"
-            step="5"
-            bind:value={latency}
+            value={threshold}
+            oninput={(event) => setThreshold(Number(event.currentTarget.value))}
             disabled={running}
           />
         </label>
       </div>
       <p class="fine-print">
-        Lower the threshold for a quiet pad. Positive compensation subtracts input delay from hits.
-        Calibrate to your device; accuracy is an estimate.
+        Lower the threshold for a quiet pad. Calibration uses the same detector. Timing accuracy is
+        an estimate.
       </p>
     {/if}
     <div class="analysis-footnote">

@@ -24,6 +24,14 @@
   import { practice, addSession } from '../stores/practice.svelte';
   import AnalysisPanel from './AnalysisPanel.svelte';
   import SessionSummary from './SessionSummary.svelte';
+  import LatencyCalibration from './LatencyCalibration.svelte';
+  import {
+    audioSettings,
+    applyCalibration,
+    resetCalibration,
+  } from '../stores/audio-settings.svelte';
+  import { routeChanged } from '../analysis/latency';
+  import type { SavedCalibration } from '../analysis/latency';
 
   let {
     drill,
@@ -47,6 +55,9 @@
   let countIn = $state(true);
   let running = $state(false);
   let starting = $state(false);
+  let finishing = $state(false);
+  let calibrationOpen = $state(false);
+  let calibrationNotice = $state('');
   let elapsed = $state(0);
   let step = $state(-1);
   let bar = $state(0);
@@ -62,13 +73,15 @@
   let hitCount = $state(0);
   let strokes = $state({ left: 0, right: 0 });
   let motion = $state([0, 0]);
-  let threshold = $state(0.035);
-  let latency = $state(0);
+  let threshold = $derived(audioSettings.threshold);
+  let latency = $derived(audioSettings.latencyMs);
   let video = $state<HTMLVideoElement>();
   let engine: Metronome | null = null;
   let microphone: Microphone | null = null;
   let camera: StrokeCamera | null = null;
   let timer: ReturnType<typeof setInterval>;
+  let drainTimer: ReturnType<typeof setTimeout>;
+  let captureEndTime: number | null = null;
   let expected: number[] = [];
   let observed: number[] = [];
   let startTime = 0;
@@ -129,18 +142,29 @@
       await candidate.connect(
         clock.context,
         (time) => {
-          if (running && time >= startTime && time <= startTime + minutes * 60) {
-            observed.push(time - latency / 1000);
+          const correctedTime = time - latency / 1000;
+          if (
+            running &&
+            correctedTime >= startTime - Math.min(0.15, 60 / bpm / drill.subdivision / 2) &&
+            correctedTime <= (captureEndTime ?? startTime + minutes * 60)
+          ) {
+            observed.push(correctedTime);
             hitCount = observed.length;
           }
         },
         (value) => (level = value),
       );
+      const route = await candidate.getRoute(clock.context);
       if (disposed) {
         candidate.disconnect();
         return;
       }
       microphone = candidate;
+      if (audioSettings.calibration && routeChanged(audioSettings.calibration.route, route)) {
+        resetCalibration();
+        calibrationNotice =
+          'Your microphone, output device, or sample rate changed. Compensation was reset to 0 ms; calibrate this audio setup.';
+      }
       microphone.setThreshold(threshold);
       micEnabled = true;
     } catch (reason) {
@@ -149,6 +173,22 @@
     } finally {
       sensorBusy = false;
     }
+  }
+
+  function openCalibration() {
+    if (running || sensorBusy || starting) return;
+    microphone?.disconnect();
+    microphone = null;
+    micEnabled = false;
+    level = 0;
+    error = '';
+    calibrationOpen = true;
+  }
+
+  function useCalibration(result: SavedCalibration) {
+    applyCalibration(result);
+    calibrationNotice = '';
+    calibrationOpen = false;
   }
 
   async function toggleCamera() {
@@ -166,7 +206,7 @@
       await candidate.connect(
         video,
         (side) => {
-          if (running && !isCountIn) strokes[side]++;
+          if (running && !finishing && !isCountIn) strokes[side]++;
         },
         (left, right) => (motion = [left, right]),
       );
@@ -198,6 +238,8 @@
       hitCount = 0;
       strokes = { left: 0, right: 0 };
       elapsed = 0;
+      captureEndTime = null;
+      finishing = false;
       step = -1;
       bar = 0;
       currentBpm = bpm;
@@ -239,49 +281,81 @@
   }
 
   function finish(completed = false) {
-    if (!running || !engine) return;
+    if (!running || finishing || !engine) return;
     const end = Math.min(engine.context.currentTime, startTime + minutes * 60);
     engine.stop();
     clearInterval(timer);
+    const playedNotes = expected.filter((time) => time <= end);
+    // Include a small early/late window at the edges, bounded by half a subdivision
+    // so a count-in stroke cannot be mistaken for the first practice note.
+    const captureStart = startTime - Math.min(0.15, 60 / bpm / drill.subdivision / 2);
+    captureEndTime =
+      (playedNotes.at(-1) ?? end) + Math.min(0.15, 60 / currentBpm / drill.subdivision / 2);
     const seconds = Math.max(0, end - startTime);
-    if (seconds >= 1) {
-      const session: Session = {
-        id: crypto.randomUUID(),
-        drillId: drill.id,
-        drillName: drill.name,
-        startedAt,
-        seconds: Math.round(seconds),
-        bpm,
-        endBpm: currentBpm,
-        completed,
-        notes: '',
-        timing: micEnabled
-          ? analyzeTiming(
-              expected.filter((time) => time <= end),
-              observed.filter((time) => time >= startTime && time <= end),
-            )
-          : null,
-        strokes: cameraEnabled ? { ...strokes } : null,
+    elapsed = seconds;
+    let inputInterrupted = false;
+    const save = () => {
+      if (seconds >= 1) {
+        const session: Session = {
+          id: crypto.randomUUID(),
+          drillId: drill.id,
+          drillName: drill.name,
+          startedAt,
+          seconds: Math.round(seconds),
+          bpm,
+          endBpm: currentBpm,
+          completed,
+          notes: inputInterrupted
+            ? 'Audio input was interrupted while finishing. Timing analysis is unavailable.'
+            : '',
+          timing:
+            micEnabled && !inputInterrupted
+              ? analyzeTiming(
+                  playedNotes,
+                  observed.filter((time) => time >= captureStart && time <= captureEndTime!),
+                )
+              : null,
+          latencyMs: micEnabled ? latency : undefined,
+          strokes: cameraEnabled ? { ...strokes } : null,
+        };
+        addSession(session);
+        summary = session;
+      }
+      running = false;
+      finishing = false;
+      onRunning(false);
+      step = -1;
+      isCountIn = false;
+      microphone?.disconnect();
+      microphone = null;
+      micEnabled = false;
+      level = 0;
+      camera?.disconnect();
+      camera = null;
+      cameraEnabled = false;
+    };
+    // Input for the final played notes can still be in flight after the click stops.
+    // Keep capture alive briefly; use the fixed corrected-time boundary above.
+    const drainUntil = captureEndTime + latency / 1000 + 0.06;
+    if (micEnabled && seconds >= 1 && drainUntil > engine.context.currentTime) {
+      finishing = true;
+      const deadline = performance.now() + 2000;
+      const drain = () => {
+        if (!engine || disposed) return;
+        if (engine.context.state !== 'running' || performance.now() >= deadline) {
+          inputInterrupted = true;
+          save();
+        } else if (engine.context.currentTime >= drainUntil) save();
+        else drainTimer = setTimeout(drain, 20);
       };
-      addSession(session);
-      summary = session;
-    }
-    running = false;
-    onRunning(false);
-    step = -1;
-    isCountIn = false;
-    microphone?.disconnect();
-    microphone = null;
-    micEnabled = false;
-    level = 0;
-    camera?.disconnect();
-    camera = null;
-    cameraEnabled = false;
+      drain();
+    } else save();
   }
 
   onDestroy(() => {
     disposed = true;
     clearInterval(timer);
+    clearTimeout(drainTimer);
     microphone?.disconnect();
     camera?.disconnect();
     void engine?.destroy();
@@ -295,7 +369,9 @@
       event.target === document.body &&
       !summary &&
       !sensorBusy &&
-      !starting
+      !starting &&
+      !finishing &&
+      !calibrationOpen
     ) {
       event.preventDefault();
       if (running) finish();
@@ -458,13 +534,15 @@
         </div>
         <button
           class="primary-button start-button"
-          disabled={starting || sensorBusy}
+          disabled={starting || sensorBusy || finishing}
           onclick={() => (running ? finish() : start())}
         >
-          {#if running}<Square size={15} fill="currentColor" />End session{:else}<Play
-              size={17}
+          {#if finishing}Collecting final hits…{:else if running}<Square
+              size={15}
               fill="currentColor"
-            />{starting ? 'Starting…' : 'Start practice'}{/if}
+            />End session{:else}<Play size={17} fill="currentColor" />{starting
+              ? 'Starting…'
+              : 'Start practice'}{/if}
         </button>
       </div>
       {#if error && !micEnabled && !cameraEnabled}<p class="inline-error" role="alert">
@@ -480,8 +558,8 @@
       hits={hitCount}
       {strokes}
       {motion}
-      bind:threshold
-      bind:latency
+      calibrate={openCalibration}
+      {calibrationNotice}
       bind:video
       {toggleMic}
       {toggleCamera}
@@ -550,6 +628,11 @@
     {/if}
   </aside>
 </div>
+{#if calibrationOpen}<LatencyCalibration
+    getContext={() => audio().context}
+    apply={useCalibration}
+    close={() => (calibrationOpen = false)}
+  />{/if}
 {#if summary}<SessionSummary
     session={summary}
     close={() => (summary = null)}

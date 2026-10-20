@@ -29,6 +29,8 @@ export interface TimingResult {
 }
 
 export interface Session {
+  /** Compensation used for this result; older sessions may not have recorded it. */
+  latencyMs?: number;
   id: string;
   drillId: string;
   drillName: string;

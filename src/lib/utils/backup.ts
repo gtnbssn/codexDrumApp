@@ -26,6 +26,8 @@ export function validateData(value: unknown): value is PracticeData {
     data.sessions.every(
       (s) =>
         s &&
+        (s.latencyMs === undefined ||
+          (Number.isFinite(s.latencyMs) && s.latencyMs >= -200 && s.latencyMs <= 1000)) &&
         typeof s.id === 'string' &&
         typeof s.drillId === 'string' &&
         typeof s.drillName === 'string' &&

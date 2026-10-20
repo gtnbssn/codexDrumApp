@@ -301,6 +301,9 @@
                   {session.timing.matched ? Math.round(session.timing.meanErrorMs) : '—'} ms average error
                 </span>
                 <span>{session.timing.extra} extra hits</span>
+                {#if session.latencyMs !== undefined}<span>
+                    {session.latencyMs} ms compensation
+                  </span>{/if}
                 <span>
                   {session.timing.matched ? Math.round(session.timing.consistencyMs) : '—'} ms spread
                 </span>

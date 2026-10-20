@@ -1,3 +1,5 @@
+import type { AudioRoute } from './latency';
+
 /** Captures transients only. No raw audio is recorded, stored, or uploaded. */
 export class Microphone {
   private stream: MediaStream | null = null;
@@ -35,12 +37,34 @@ export class Microphone {
   setThreshold(value: number) {
     this.processor?.port.postMessage({ type: 'threshold', value });
   }
+  async getRoute(context: AudioContext): Promise<AudioRoute> {
+    const track = this.stream?.getAudioTracks()[0];
+    let outputLabel = '';
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      outputLabel =
+        devices.find((device) => device.kind === 'audiooutput' && device.deviceId === 'default')
+          ?.label ?? '';
+    } catch {
+      /* Some browsers do not expose output device metadata. */
+    }
+    return {
+      inputId: track?.getSettings().deviceId ?? '',
+      inputLabel: track?.label ?? '',
+      outputLabel,
+      sampleRate: context.sampleRate,
+    };
+  }
   disconnect() {
     this.stream?.getTracks().forEach((track) => track.stop());
     this.processor?.disconnect();
     this.source?.disconnect();
     this.silence?.disconnect();
     if (this.processor) this.processor.port.onmessage = null;
+    this.processor?.port.close();
+    this.processor = null;
+    this.source = null;
+    this.silence = null;
     this.stream = null;
   }
 }
