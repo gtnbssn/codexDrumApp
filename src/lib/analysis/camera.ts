@@ -1,59 +1,148 @@
-/** Small, dependency-free motion experiment.
- * Changes in two image zones count motion bursts. This does not infer pose,
- * stick technique, impact timing, or actual contact with a drum.
+import { HandStrokeEstimator } from './hand-strokes';
+import type { HandFrame, HandSide, TrackingReply, TrackingRequest } from './hand-tracking';
+
+/** Owns camera/worker lifetime. Only one frame can be in flight; slow devices
+ * drop frames rather than building a queue of stale stroke estimates.
  */
 export class StrokeCamera {
   private stream: MediaStream | null = null;
+  private video: HTMLVideoElement | null = null;
+  private worker: Worker | null = null;
   private frame = 0;
-  private previous: Uint8ClampedArray | null = null;
-  private active = [false, false];
-  private lastStroke = [0, 0];
+  private closed = false;
+  private pending = false;
+  private resetAt = 0;
+  private rejectLoad: ((error: Error) => void) | undefined;
+  private strokes = new HandStrokeEstimator();
+
+  reset() {
+    this.resetAt = performance.now();
+    this.strokes.reset();
+  }
 
   async connect(
     video: HTMLVideoElement,
-    onStroke: (side: 'left' | 'right') => void,
-    onMotion: (left: number, right: number) => void,
+    onStroke: (side: HandSide) => void,
+    onFrame: (frame: HandFrame) => void,
+    onFailure: (error: Error) => void,
   ) {
     if (!navigator.mediaDevices?.getUserMedia)
       throw new Error('Camera access needs HTTPS or localhost and a supported browser.');
+    if (!('OffscreenCanvas' in window) || !('createImageBitmap' in window))
+      throw new Error(
+        'Hand tracking needs a browser with OffscreenCanvas and ImageBitmap support.',
+      );
+    this.video = video;
+    let processedFrames = 0;
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 320, height: 240, facingMode: 'user' },
+      this.worker = new Worker(new URL('./hand-tracking.worker.ts', import.meta.url), {
+        type: 'module',
       });
-      video.srcObject = this.stream;
-      await video.play();
-      const canvas = document.createElement('canvas');
-      canvas.width = 80;
-      canvas.height = 60;
-      const context = canvas.getContext('2d', { willReadFrequently: true });
-      if (!context) throw new Error('Canvas is not supported in this browser.');
-      const sample = () => {
-        context.drawImage(video, 0, 0, 80, 60);
-        const pixels = context.getImageData(0, 0, 80, 60).data;
-        const motion = [0, 0];
-        if (this.previous) {
-          for (let y = 12; y < 54; y++) {
-            for (let x = 8; x < 72; x++) {
-              const i = (y * 80 + x) * 4;
-              const difference =
-                Math.abs(pixels[i] - this.previous[i]) +
-                Math.abs(pixels[i + 1] - this.previous[i + 1]) +
-                Math.abs(pixels[i + 2] - this.previous[i + 2]);
-              if (difference > 90) motion[x < 40 ? 1 : 0]++; // Mirror to match the preview.
-            }
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error('Hand tracking took too long to load. Try again.')),
+          30000,
+        );
+        this.rejectLoad = (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        };
+        const fail = (message: string) => {
+          const error = new Error(`Hand tracking failed. ${message}`);
+          if (this.rejectLoad) this.rejectLoad(error);
+          else {
+            this.disconnect();
+            onFailure(error);
           }
-          motion.forEach((amount, side) => {
-            const moving = amount > 65;
-            if (moving && !this.active[side] && performance.now() - this.lastStroke[side] > 150) {
-              onStroke(side === 0 ? 'left' : 'right');
-              this.lastStroke[side] = performance.now();
+        };
+        this.worker!.onerror = () =>
+          fail('The MediaPipe worker could not run. Try a current browser.');
+        this.worker!.onmessage = (event: MessageEvent<TrackingReply>) => {
+          if (this.closed) return;
+          const result = event.data;
+          if (result.type === 'ready') {
+            clearTimeout(timeout);
+            this.rejectLoad = undefined;
+            resolve();
+          } else if (result.type === 'error') {
+            fail(`Check that the local model and runtime files are available. ${result.message}`);
+          } else {
+            this.pending = false;
+            // Discard movement captured before a new session/reset, even if
+            // its inference reply arrives afterwards. Still draw its landmarks.
+            if (result.timestamp >= this.resetAt) {
+              for (const side of this.strokes.update(result.hands, result.timestamp))
+                onStroke(side);
             }
-            this.active[side] = moving;
-          });
-          onMotion(motion[0] / 300, motion[1] / 300);
+            onFrame({
+              hands: result.hands,
+              timestamp: result.timestamp,
+              processedFrames: ++processedFrames,
+            });
+          }
+        };
+        this.post({
+          type: 'load',
+          assetBase: new URL(`${import.meta.env.BASE_URL}mediapipe`, location.href).href,
+        });
+      });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480, facingMode: 'user' },
+        audio: false,
+      });
+      // A permission prompt can resolve after cancellation/navigation.
+      if (this.closed) {
+        stream.getTracks().forEach((track) => track.stop());
+        throw new DOMException('Camera connection cancelled.', 'AbortError');
+      }
+      this.stream = stream;
+      stream.getVideoTracks()[0].addEventListener('ended', () => {
+        if (!this.closed) {
+          this.disconnect();
+          onFailure(new Error('The camera was disconnected. Reconnect it to resume tracking.'));
         }
-        this.previous = new Uint8ClampedArray(pixels);
+      });
+      video.srcObject = stream;
+      await video.play();
+      if (this.closed) return;
+      let lastFrame = -Infinity;
+      let lastVideoTime = -1;
+      const sample = (timestamp: number) => {
+        if (this.closed) return;
         this.frame = requestAnimationFrame(sample);
+        if (
+          this.pending ||
+          video.readyState < 2 ||
+          timestamp - lastFrame < 50 ||
+          video.currentTime === lastVideoTime
+        )
+          return;
+        lastFrame = timestamp;
+        lastVideoTime = video.currentTime;
+        this.pending = true;
+        const width = Math.min(480, video.videoWidth);
+        void createImageBitmap(video, {
+          resizeWidth: width,
+          resizeHeight: Math.round((width * video.videoHeight) / video.videoWidth),
+        })
+          .then((image) => {
+            if (this.closed) {
+              image.close();
+              return;
+            }
+            try {
+              this.post({ type: 'frame', image, timestamp }, [image]);
+            } catch (error) {
+              image.close();
+              throw error;
+            }
+          })
+          .catch(() => {
+            if (!this.closed) {
+              this.disconnect();
+              onFailure(new Error('Could not read camera frames. Reconnect the camera to retry.'));
+            }
+          });
       };
       this.frame = requestAnimationFrame(sample);
     } catch (error) {
@@ -62,10 +151,21 @@ export class StrokeCamera {
     }
   }
 
+  private post(message: TrackingRequest, transfer: Transferable[] = []) {
+    this.worker?.postMessage(message, transfer);
+  }
+
   disconnect() {
+    this.closed = true;
+    this.rejectLoad?.(new DOMException('Camera connection cancelled.', 'AbortError'));
+    this.rejectLoad = undefined;
     cancelAnimationFrame(this.frame);
+    this.worker?.terminate();
+    this.worker = null;
     this.stream?.getTracks().forEach((track) => track.stop());
     this.stream = null;
-    this.previous = null;
+    if (this.video) this.video.srcObject = null;
+    this.video = null;
+    this.strokes.reset();
   }
 }

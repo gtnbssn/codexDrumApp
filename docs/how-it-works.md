@@ -54,11 +54,17 @@ The scheduling loop checks the audio clock; stalled/suspended audio, missed sche
 
 Misses and extras lower the score. A session with no captured hits scores zero. A session without microphone input has no timing score, rather than an invented zero or a passing score. At high speeds, the windows for neighboring notes overlap, so this simple nearest-note matching is approximate. Isolated time-domain scoring cannot identify which hand played a hit.
 
-## 5. Camera input becomes motion counts
+## 5. Camera landmarks become stroke estimates
 
-`StrokeCamera` downsamples each frame to 80 × 60 pixels. It compares RGB changes with the previous frame inside two zones. A rise in changed pixels counts as a motion burst, with a 150 ms per-zone cooldown. The image and zone labels are mirrored together. Counts are saved only while a session is running, after the count-in.
+The camera pipeline has three small layers:
 
-This deliberately small, readable experiment has no pretrained model. Lighting changes, body motion, a moving camera, occlusion, and slow movements can all affect counts. It cannot infer contact, grip, or technique.
+1. `analysis/camera.ts` owns permissions, video playback, worker startup and cleanup. It sends at most one frame at a time, at most 20 times per second, resized to at most 480 pixels wide. A slow worker drops camera frames instead of delaying later results. Loading can be cancelled, navigation terminates the worker, and a late permission stream is stopped immediately. Track interruptions and inference errors release resources and report the failure.
+2. `analysis/hand-tracking.worker.ts` loads the pinned MediaPipe Hand Landmarker in VIDEO mode for up to two hands. CPU inference stays off the main thread so it does not block the metronome's scheduling loop. The worker mirrors pixels before inference: MediaPipe's selfie handedness then refers to the player's anatomical hands, and the landmarks align with the mirrored video. `HandOverlay.svelte` draws the 21 points and finger connections. Handedness confidence below 0.7 is discarded; duplicate side labels keep only the more confident detection.
+3. `analysis/hand-strokes.ts` is a pure, testable state machine for each hand. It averages wrist and four knuckle landmarks to locate the palm. A cycle requires a lift of 0.4 palm lengths, a downward movement of 0.4 palm lengths, then a rebound of 0.15 palm lengths. A 120 ms per-hand cooldown reduces duplicates. Acquisition, missing/low-confidence hands, gaps over 220 ms, discontinuous positions and a new session reset the cycle. Sideways movement and small jitter do not count. Palm-length normalization makes the thresholds less sensitive to camera distance.
+
+These are movement estimates, not impact detections. A visible palm movement can occur without drum contact, and a real finger/wrist stroke can move the palm too little to count. Fast rolls, sticks obscuring hands, wrong handedness, tracking jitter and dropped frames still limit accuracy. Camera counts do not feed the microphone timing score. Only running practice after the count-in contributes counts; completion freezes them. If tracking fails during practice, partial counts are saved with an interruption note.
+
+`public/mediapipe/hand_landmarker.task` is the versioned official model, with provenance, SHA-256 and Apache-2.0 license alongside it. `scripts/prepare-mediapipe.mjs` verifies its hash and copies the WASM loaders/binaries from the exactly pinned npm package at install/dev/build time. The worker loads these assets from the app origin, only on camera connection. Frames, palm trajectories and landmarks are never saved or uploaded. New sessions add optional `strokeMethod: 'mediapipe'`; existing backups still load and retain their older motion-burst labels.
 
 ## 6. Practice history is local
 
@@ -68,8 +74,8 @@ Backups contain versioned JSON with sessions, plan items, and the weekly goal. `
 
 ## 7. What the tests establish
 
-Unit tests exercise scoring, missed/extra hits, tempo rules, calendar boundaries, backup validation, and synthetic transient detection. Browser tests run actual Chromium against Vite: session saving/reloading, notes, drill selection, planner settings, backup flows, microphone worklet connection, camera capture/cleanup, and mobile overflow.
+Unit tests exercise scoring, missed/extra hits, tempo rules, calendar boundaries, backward-compatible backup validation, synthetic transient detection, and landmark stroke cycles (jitter, lateral motion, scale, loss, jumps, confidence and cooldown). Browser tests run actual Chromium against Vite: session saving/reloading, notes, drill selection, planner settings, backup flows, microphone worklet connection, camera capture/cleanup, and mobile overflow.
 
 Calibration tests feed the real synthesized clicks through a known Web Audio delay into the actual onset AudioWorklet. They verify measurement, saved settings after reload, compensated scoring including a final in-flight hit, known device-change invalidation, silent-input rejection, permission errors, cancellation, and cleanup of late permission streams. Pure unit tests cover the median, outliers, missing hits, echoes, search-window boundaries, and unreliable jitter.
 
-The fake browser microphone and camera prove that the input pipelines work. They do not prove real-world hit accuracy or stroke recognition. Those need instrument/device trials and a more rigorous labeled dataset before making stronger performance claims.
+Camera browser tests run the real MediaPipe worker/WASM/model on an official test image through a canvas MediaStream, verify mirrored handedness/landmarks, translate the image to exercise stroke capture, and verify saved method metadata and cleanup. They also cover blank input, failed model loads, retry, cancellation, and late permission. These controlled fixtures prove that the input pipelines work. They do not prove real-world hit accuracy or stroke recognition. Those need instrument/device trials and a more rigorous labeled dataset before making stronger performance claims.

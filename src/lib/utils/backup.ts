@@ -28,6 +28,7 @@ export function validateData(value: unknown): value is PracticeData {
         s &&
         (s.latencyMs === undefined ||
           (Number.isFinite(s.latencyMs) && s.latencyMs >= -200 && s.latencyMs <= 1000)) &&
+        (s.strokeMethod === undefined || s.strokeMethod === 'mediapipe') &&
         typeof s.id === 'string' &&
         typeof s.drillId === 'string' &&
         typeof s.drillName === 'string' &&

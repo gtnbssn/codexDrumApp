@@ -77,8 +77,8 @@
       </p>
     {/if}
     {#if session.strokes}<p class="fine-print">
-        Camera motion bursts: {session.strokes.left} left · {session.strokes.right} right. Motion counts
-        are experimental.
+        {session.strokeMethod === 'mediapipe' ? 'Estimated hand strokes' : 'Camera motion bursts'}: {session
+          .strokes.left} left · {session.strokes.right} right. Camera estimates are experimental.
       </p>{/if}
     <label class="notes-label" for="session-notes">
       <NotebookPen size={16} /> What did you notice?

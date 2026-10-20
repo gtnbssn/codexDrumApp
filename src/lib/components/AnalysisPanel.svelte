@@ -1,5 +1,7 @@
 <script lang="ts">
   import { Mic, Video, ArrowUpRight, ShieldCheck, Info } from '@lucide/svelte';
+  import HandOverlay from './HandOverlay.svelte';
+  import type { HandFrame } from '../analysis/hand-tracking';
   import { audioSettings, setLatency, setThreshold } from '../stores/audio-settings.svelte';
   let {
     micEnabled,
@@ -9,7 +11,8 @@
     level,
     hits,
     strokes,
-    motion,
+    handFrame,
+    cameraConnecting,
     calibrate,
     calibrationNotice,
     video = $bindable<HTMLVideoElement | undefined>(),
@@ -24,7 +27,8 @@
     level: number;
     hits: number;
     strokes: { left: number; right: number };
-    motion: number[];
+    handFrame: HandFrame;
+    cameraConnecting: boolean;
     calibrate: () => void;
     calibrationNotice: string;
     video?: HTMLVideoElement;
@@ -33,6 +37,7 @@
     error: string;
   } = $props();
   let tab = $state<'mic' | 'camera'>('mic');
+  let aspectRatio = $state(4 / 3);
   let threshold = $derived(audioSettings.threshold);
   let latency = $derived(audioSettings.latencyMs);
 </script>
@@ -150,38 +155,69 @@
   <div class:hidden={tab !== 'camera'}>
     <div class="analysis-content">
       <div>
-        <h4>Camera motion tracking</h4>
-        <p>Count motion bursts in left and right hand zones.</p>
-        <button class="text-button coral" disabled={busy || running} onclick={toggleCamera}>
-          {busy ? 'Connecting…' : cameraEnabled ? 'Disconnect camera' : 'Enable camera'}
+        <h4>MediaPipe hand tracking</h4>
+        <p>Track hand landmarks and estimate left and right strokes during practice.</p>
+        <button
+          class="text-button coral"
+          disabled={(busy && !cameraConnecting) || running}
+          onclick={toggleCamera}
+        >
+          {cameraConnecting
+            ? 'Cancel camera connection'
+            : cameraEnabled
+              ? 'Disconnect camera'
+              : 'Enable camera'}
           <ArrowUpRight size={16} />
         </button>
       </div>
     </div>
-    <div class="camera-preview" class:hidden={!cameraEnabled}>
+    {#if cameraConnecting}<p class="fine-print" role="status">
+        Loading hand tracking, then requesting camera access…
+      </p>{/if}
+    <div
+      class="camera-preview"
+      class:hidden={!cameraEnabled}
+      style:aspect-ratio={aspectRatio}
+      data-processed-frames={handFrame.processedFrames}
+    >
       <video
         bind:this={video}
         autoplay
         muted
         playsinline
         aria-label="Mirrored camera preview"
+        onloadedmetadata={(event) => {
+          aspectRatio = event.currentTarget.videoWidth / event.currentTarget.videoHeight;
+        }}
       ></video>
-      <div class="camera-zones">
+      <HandOverlay hands={handFrame.hands} />
+    </div>
+    {#if cameraEnabled}
+      <p class="fine-print" role="status">
+        {#if handFrame.hands.length}
+          Tracking {handFrame.hands
+            .map((hand) => `${hand.side} (${Math.round(hand.confidence * 100)}%)`)
+            .join(' · ')}
+        {:else if handFrame.processedFrames}
+          No hands detected. Keep your hands visible and well lit.
+        {:else}Looking for hands…{/if}
+      </p>
+      <div class="hand-counts" aria-label="Estimated hand strokes">
         <span>
-          L <b>{strokes.left}</b>
-          <i style={`opacity:${Math.min(1, motion[0])}`}></i>
+          Left hand <strong>{strokes.left}</strong>
         </span>
         <span>
-          R <b>{strokes.right}</b>
-          <i style={`opacity:${Math.min(1, motion[1])}`}></i>
+          Right hand <strong>{strokes.right}</strong>
         </span>
       </div>
-    </div>
+      <p class="fine-print">Counts start with the practice session, after the count-in.</p>
+    {/if}
     <div class="analysis-footnote">
       <Info size={14} />
       <span>
-        Keep one hand in each zone and the camera still. Counts are motion bursts, not verified
-        strokes or technique ratings.
+        Keep the camera still with a front view of both hands. Each estimate needs a visible lift,
+        downstroke and rebound. Fast or small movements and hands hidden by sticks may be missed.
+        This does not detect drum contact or rate technique.
       </span>
     </div>
   </div>

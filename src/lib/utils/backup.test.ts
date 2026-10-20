@@ -38,6 +38,15 @@ describe('backup validation', () => {
     data.sessions[0].latencyMs = Number.NaN;
     expect(validateData(data)).toBe(false);
   });
+  it('preserves legacy motion counts and new MediaPipe stroke estimates', () => {
+    const data = valid();
+    data.sessions[0].strokes = { left: 12, right: 13 };
+    expect(validateData(data)).toBe(true);
+    data.sessions[0].strokeMethod = 'mediapipe';
+    expect(validateData(data)).toBe(true);
+    data.sessions[0].strokeMethod = 'unrecognized' as never;
+    expect(validateData(data)).toBe(false);
+  });
   it('rejects malformed sessions, dates, sensors, and invalid settings', () => {
     for (const data of [
       null,

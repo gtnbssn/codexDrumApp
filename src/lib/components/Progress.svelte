@@ -308,7 +308,10 @@
                   {session.timing.matched ? Math.round(session.timing.consistencyMs) : '—'} ms spread
                 </span>
               </div>{/if}{#if session.strokes}<p class="fine-print">
-                Experimental motion counts: L {session.strokes.left} / R {session.strokes.right}
+                {session.strokeMethod === 'mediapipe'
+                  ? 'Estimated hand strokes'
+                  : 'Experimental motion counts'}: L {session.strokes.left} / R {session.strokes
+                  .right}
               </p>{/if}
             <label for={`notes-${session.id}`} class="notes-label">
               <NotebookPen size={15} />Session notes (saved when you leave this field)

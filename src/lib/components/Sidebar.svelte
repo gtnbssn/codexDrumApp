@@ -87,8 +87,8 @@
         hit. Device latency and room noise affect the estimates.
       </p>
       <p>
-        The experimental camera tool counts motion bursts in two hand zones. It does not evaluate
-        technique or detect contact with a drum.
+        The experimental MediaPipe camera tool tracks hand landmarks and estimates strokes from
+        visible hand movement. It does not evaluate technique or detect contact with a drum.
       </p>
       <p>
         Your history lives in this browser. Export a backup from My progress before clearing browser

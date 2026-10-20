@@ -20,6 +20,7 @@
   import { Metronome } from '../audio/metronome';
   import { Microphone } from '../analysis/microphone';
   import { StrokeCamera } from '../analysis/camera';
+  import type { HandFrame } from '../analysis/hand-tracking';
   import { analyzeTiming, formatTime, localDay, weekDays } from '../utils/timing';
   import { practice, addSession } from '../stores/practice.svelte';
   import AnalysisPanel from './AnalysisPanel.svelte';
@@ -68,11 +69,15 @@
   let summary = $state<Session | null>(null);
   let micEnabled = $state(false);
   let cameraEnabled = $state(false);
-  let sensorBusy = $state(false);
+  let cameraConnecting = $state(false);
+  let micConnecting = $state(false);
+  let sensorBusy = $derived(micConnecting || cameraConnecting);
   let level = $state(0);
   let hitCount = $state(0);
   let strokes = $state({ left: 0, right: 0 });
-  let motion = $state([0, 0]);
+  let handFrame = $state<HandFrame>({ hands: [], timestamp: 0, processedFrames: 0 });
+  let cameraUsed = false;
+  let cameraInterrupted = false;
   let threshold = $derived(audioSettings.threshold);
   let latency = $derived(audioSettings.latencyMs);
   let video = $state<HTMLVideoElement>();
@@ -134,7 +139,7 @@
       level = 0;
       return;
     }
-    sensorBusy = true;
+    micConnecting = true;
     const candidate = new Microphone();
     try {
       const clock = audio();
@@ -171,7 +176,7 @@
       candidate.disconnect();
       error = mediaError(reason);
     } finally {
-      sensorBusy = false;
+      micConnecting = false;
     }
   }
 
@@ -193,34 +198,52 @@
 
   async function toggleCamera() {
     error = '';
-    if (cameraEnabled) {
-      camera?.disconnect();
+    if (camera) {
+      camera.disconnect();
       camera = null;
       cameraEnabled = false;
+      cameraConnecting = false;
+      handFrame = { hands: [], timestamp: 0, processedFrames: 0 };
       return;
     }
     if (!video) return;
-    sensorBusy = true;
+    cameraConnecting = true;
     const candidate = new StrokeCamera();
+    camera = candidate; // Also own it while loading, so cancellation/unmount releases it.
     try {
       await candidate.connect(
         video,
         (side) => {
           if (running && !finishing && !isCountIn) strokes[side]++;
         },
-        (left, right) => (motion = [left, right]),
+        (frame) => {
+          handFrame = frame;
+          if (!running || isCountIn) candidate.reset();
+        },
+        (reason) => {
+          cameraInterrupted ||= running;
+          camera = null;
+          cameraEnabled = false;
+          handFrame = { hands: [], timestamp: 0, processedFrames: 0 };
+          error = mediaError(reason);
+        },
       );
-      if (disposed) {
+      if (disposed || camera !== candidate) {
         candidate.disconnect();
         return;
       }
-      camera = candidate;
       cameraEnabled = true;
     } catch (reason) {
       candidate.disconnect();
-      error = mediaError(reason);
+      if (camera === candidate) {
+        camera = null;
+        if (!(reason instanceof DOMException && reason.name === 'AbortError'))
+          error = mediaError(reason);
+      }
     } finally {
-      sensorBusy = false;
+      if (camera === candidate || !camera) {
+        cameraConnecting = false;
+      }
     }
   }
 
@@ -237,6 +260,9 @@
       observed = [];
       hitCount = 0;
       strokes = { left: 0, right: 0 };
+      camera?.reset();
+      cameraUsed = cameraEnabled;
+      cameraInterrupted = false;
       elapsed = 0;
       captureEndTime = null;
       finishing = false;
@@ -305,9 +331,16 @@
           bpm,
           endBpm: currentBpm,
           completed,
-          notes: inputInterrupted
-            ? 'Audio input was interrupted while finishing. Timing analysis is unavailable.'
-            : '',
+          notes: [
+            inputInterrupted
+              ? 'Audio input was interrupted while finishing. Timing analysis is unavailable.'
+              : '',
+            cameraInterrupted
+              ? 'Camera tracking was interrupted; stroke estimates cover part of this session.'
+              : '',
+          ]
+            .filter(Boolean)
+            .join(' '),
           timing:
             micEnabled && !inputInterrupted
               ? analyzeTiming(
@@ -316,7 +349,8 @@
                 )
               : null,
           latencyMs: micEnabled ? latency : undefined,
-          strokes: cameraEnabled ? { ...strokes } : null,
+          strokes: cameraUsed ? { ...strokes } : null,
+          strokeMethod: cameraUsed ? 'mediapipe' : undefined,
         };
         addSession(session);
         summary = session;
@@ -557,7 +591,8 @@
       {level}
       hits={hitCount}
       {strokes}
-      {motion}
+      {handFrame}
+      {cameraConnecting}
       calibrate={openCalibration}
       {calibrationNotice}
       bind:video
