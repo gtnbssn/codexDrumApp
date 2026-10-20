@@ -1,15 +1,6 @@
 <script lang="ts">
   import { openDialog } from '../utils/dialog';
-  import {
-    Plus,
-    ArrowRight,
-    Trash2,
-    X,
-    CalendarDays,
-    Sparkles,
-    Play,
-    Music2,
-  } from '@lucide/svelte';
+  import { Plus, ArrowRight, Trash2, X, Play, Music2 } from '@lucide/svelte';
   import { practice, addPlan, removePlan } from '../stores/practice.svelte';
   import { drills, findDrill } from '../data/drills';
   import type { Drill } from '../types';
@@ -51,38 +42,16 @@
 </script>
 
 <div class="page-intro">
-  <div>
-    <div class="eyebrow">
-      <span class="small-line"></span>
-      MAKE ROOM FOR THE GOOD STUFF
-    </div>
-    <!-- prettier-ignore -->
-    <h1>A rhythm for your week<span class="coral">.</span></h1>
-    <p>A simple plan. A little commitment. A lot to look forward to.</p>
-  </div>
+  <h1>Practice plan</h1>
   <button class="primary-button" onclick={() => open(new Date().getDay())}>
     <Plus size={17} />Add a drill
   </button>
 </div>
-<div class="planner-banner">
-  <div class="planner-banner-icon"><CalendarDays size={27} strokeWidth={1.5} /></div>
-  <div>
-    <h3>Your week, on repeat.</h3>
-    <p>
-      This is a recurring weekly routine. Start any drill when it suits you; completed sessions live
-      in My progress.
-    </p>
-  </div>
-  <span class="plan-total">
-    <strong>{planTotal}</strong>
-    MIN / WEEK
-  </span>
-</div>
+<p class="planner-description">Recurring weekly routine · {planTotal} minutes planned per week.</p>
 {#if !practice.data.plan.length}<div class="starter-banner">
-    <Sparkles size={21} />
     <div>
-      <strong>A blank page is full of possibilities.</strong>
-      <p>Try a 10-minute foundation routine on Monday, Wednesday, and Friday.</p>
+      <strong>Starter routine</strong>
+      <p>10 minutes of drills on Monday, Wednesday, and Friday.</p>
     </div>
     <button class="secondary-button" onclick={starterPlan}>
       Use the starter plan <ArrowRight size={16} />
@@ -122,9 +91,7 @@
                 <Trash2 size={15} />
               </button>
             </div>{/each}
-        </div>{:else}<p class="rest-day">
-          A little room to breathe. Or a little room to play.
-        </p>{/if}
+        </div>{:else}<p class="rest-day">No drills scheduled.</p>{/if}
       <button class="add-day-button" onclick={() => open(day.id)}>
         <Plus size={14} />Add a drill
       </button>
@@ -139,8 +106,7 @@
       >
         <X size={20} />
       </button>
-      <span class="eyebrow">A LITTLE INTENTION GOES A LONG WAY</span>
-      <h2 id="add-drill-title">Make time for your rhythm.</h2>
+      <h2 id="add-drill-title">Add a drill</h2>
       <p>Add a drill to your recurring weekly plan.</p>
       <form class="plan-form" onsubmit={save}>
         <label>

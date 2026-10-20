@@ -2,7 +2,6 @@
   import { openDialog } from '../utils/dialog';
   import {
     AudioLines,
-    Asterisk,
     SlidersHorizontal,
     LayoutGrid,
     ChartNoAxesCombined,
@@ -40,8 +39,6 @@
     <!-- prettier-ignore -->
     <span class="brand-word">pocket<span class="brand-dot">.</span></span>
   </a>
-  <div class="sidebar-caption">MAKE TIME FOR YOUR RHYTHM</div>
-  <div class="nav-label">WORKSPACE</div>
   <nav aria-label="Main navigation">
     {#each links as item}
       <button
@@ -58,28 +55,9 @@
     {/each}
   </nav>
   <div class="sidebar-bottom">
-    <div class="little-note">
-      <span class="note-star"><Asterisk size={29} strokeWidth={1.8} /></span>
-      <p>
-        A little, every day.
-        <br />
-        <strong>That’s how it clicks.</strong>
-      </p>
-      <span class="note-line"></span>
-      <small>PROGRESS OVER PERFECTION</small>
-    </div>
     <button class="help-link" onclick={() => (help = true)}>
-      <CircleHelp size={17} /> A few things to know <ArrowUpRight size={15} />
+      <CircleHelp size={17} /> Help <ArrowUpRight size={15} />
     </button>
-    <div class="profile">
-      <div class="avatar">YOU</div>
-      <div>
-        <strong>Your personal space</strong>
-        <small>
-          Saved on this device <span class="green-dot"></span>
-        </small>
-      </div>
-    </div>
   </div>
 </aside>
 
@@ -99,8 +77,7 @@
       >
         <X size={20} />
       </button>
-      <span class="eyebrow">WELCOME TO POCKET</span>
-      <h2 id="help-title">Small sessions. Real progress.</h2>
+      <h2 id="help-title">Practice help</h2>
       <p>
         Pick a drill, set a comfortable tempo, and press play. One bar counts you in. End your
         session to save it, even if you don’t finish the timer.
@@ -118,7 +95,7 @@
         data or changing devices. No account, uploads, or cloud sync.
       </p>
       <button class="primary-button" onclick={() => (help = false)}>
-        Let’s practice <ArrowUpRight size={17} />
+        Close help <ArrowUpRight size={17} />
       </button>
     </dialog>
   </div>

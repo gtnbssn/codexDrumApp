@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Headphones, ChevronRight } from '@lucide/svelte';
   import Sidebar from './lib/components/Sidebar.svelte';
   import PracticeRoom from './lib/components/PracticeRoom.svelte';
   import DrillLibrary from './lib/components/DrillLibrary.svelte';
@@ -59,21 +58,6 @@
 <div class="app-shell">
   <Sidebar {page} {navigate} {running} />
   <div class="workspace">
-    <header class="topbar">
-      <div class="breadcrumb">
-        Your workspace <ChevronRight size={13} />
-        <strong>{titles[page]}</strong>
-      </div>
-      <div class="topbar-right">
-        <span class="local-badge">
-          <span></span>
-          JUST YOU & THE GROOVE
-        </span>
-        <span class="topbar-divider"></span>
-        <Headphones size={17} />
-        <span>Headphones recommended</span>
-      </div>
-    </header>
     <main id="main-content">
       {#if practice.warning}<div class="notice notice-error" role="alert">
           {practice.warning}

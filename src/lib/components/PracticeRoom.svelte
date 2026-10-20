@@ -2,7 +2,6 @@
   import { onDestroy, untrack } from 'svelte';
   import {
     Play,
-    Asterisk,
     Square,
     Minus,
     Plus,
@@ -13,8 +12,6 @@
     ArrowRight,
     Timer,
     Target,
-    Sparkles,
-    Headphones,
     Check,
     Music2,
   } from '@lucide/svelte';
@@ -86,11 +83,6 @@
       .reduce((sum, s) => sum + s.seconds / 60, 0),
   );
   let todaysPlan = $derived(practice.data.plan.filter((p) => p.day === today.getDay()));
-  let todaySeconds = $derived(
-    practice.data.sessions
-      .filter((s) => localDay(new Date(s.startedAt)) === localDay(today))
-      .reduce((sum, s) => sum + s.seconds, 0),
-  );
 
   function audio() {
     engine ??= new Metronome();
@@ -312,42 +304,23 @@
   }}
 />
 
-<div class="page-intro">
-  <div>
-    <div class="eyebrow">
-      <span class="small-line"></span>
-      A LITTLE BETTER, EVERY BEAT
-    </div>
-    <!-- prettier-ignore -->
-    <h1>Find your pocket<span class="coral">.</span></h1>
-    <p>Show up. Settle in. Make a little progress.</p>
-  </div>
-  <div class="today-tag">
-    <span class="green-dot"></span>
-    Your daily rhythm starts here
-  </div>
-</div>
+<div class="page-intro"><h1>Practice room</h1></div>
 
 <div class="practice-layout">
   <div class="practice-main">
     <div class="section-title">
-      <h2>Let’s get into it</h2>
+      <h2>Choose a drill</h2>
       <button class="text-button" disabled={running} onclick={() => navigate('library')}>
         Explore all drills <ArrowUpRight size={16} />
       </button>
     </div>
     <div class="quick-drills">
-      {#each [drills[0], drills[2], drills[3]] as item, i}<button
+      {#each [drills[0], drills[2], drills[3]] as item}<button
           class:selected={drill.id === item.id}
           disabled={running}
           onclick={() => onSelect(item)}
         >
-          <span class="drill-mini-icon">
-            {#if i === 0}<Music2 size={18} />{:else if i === 1}<Sparkles
-                size={18}
-              />{:else}<Headphones size={18} />{/if}
-          </span>
-          <span>
+          <span class="quick-drill-label">
             <strong>{item.name}</strong>
             <small>{item.category}</small>
           </span>
@@ -358,7 +331,7 @@
     <section class="metronome-card card" aria-label="Practice controls">
       <div class="metronome-heading">
         <div>
-          <span class="pill coral-pill">{drill.category.toUpperCase()}</span>
+          <span class="pill coral-pill">{drill.category}</span>
           <h2>{drill.name}</h2>
           <p>{drill.focus}</p>
         </div>
@@ -366,7 +339,7 @@
           4
           <span>/</span>
           4
-          <small>TIME SIGNATURE</small>
+          <small>Time signature</small>
         </span>
       </div>
       <div class="tempo-workspace">
@@ -385,16 +358,10 @@
         >
           <div class="dial-content">
             <span class="dial-top">
-              {isCountIn
-                ? 'COUNTING YOU IN'
-                : running
-                  ? silent
-                    ? 'TRUST YOUR TIMING'
-                    : 'IN THE POCKET'
-                  : 'SET YOUR TEMPO'}
+              {isCountIn ? 'Count-in' : running ? (silent ? 'Silent bar' : 'Playing') : 'Tempo'}
             </span>
             <div class="bpm-number">{running ? currentBpm : bpm}</div>
-            <span class="bpm-label">BEATS PER MINUTE</span>
+            <span class="bpm-label">BPM</span>
             <div class="dial-dots">
               {#each [0, 1, 2, 3] as beat}<span
                   class:lit={running && Math.floor(step / drill.subdivision) === beat}
@@ -427,8 +394,8 @@
       </div>
       <div class="beat-grid-label">
         <span>
-          YOUR STICKING <span class="faint">
-            · {drill.subdivision === 2 ? '8TH' : '16TH'} NOTES
+          Sticking <span class="faint">
+            · {drill.subdivision === 2 ? '8th' : '16th'} notes
           </span>
         </span>
         <span>
@@ -483,7 +450,7 @@
       </div>
       <div class="transport">
         <div class="session-time">
-          <span>{running ? (isCountIn ? 'GET READY' : `BAR ${bar + 1}`) : 'SESSION TIME'}</span>
+          <span>{running ? (isCountIn ? 'Count-in' : `Bar ${bar + 1}`) : 'Elapsed'}</span>
           <strong>
             {formatTime(elapsed)}
             <small>/ {formatTime(minutes * 60)}</small>
@@ -499,15 +466,6 @@
               fill="currentColor"
             />{starting ? 'Starting…' : 'Start practice'}{/if}
         </button>
-        <div class="transport-tip">
-          {#if running}<span class="live-dot"></span>
-            {isCountIn ? 'One bar, then you’re in' : 'Every beat is a new beginning'}{:else}<span
-              class="key-hint"
-            >
-              ↵
-            </span>
-            A moment just for you{/if}
-        </div>
       </div>
       {#if error && !micEnabled && !cameraEnabled}<p class="inline-error" role="alert">
           {error}
@@ -532,32 +490,9 @@
   </div>
 
   <aside class="practice-aside">
-    <section class="focus-card">
-      <div class="focus-art" aria-hidden="true">
-        <div></div>
-        <div></div>
-        <div></div>
-        <span><Asterisk size={55} strokeWidth={1.2} /></span>
-      </div>
-      <span class="eyebrow">TODAY’S REMINDER</span>
-      <h2>
-        Slow is smooth.
-        <br />
-        Smooth is fast.
-      </h2>
-      <p>
-        Start where you can play cleanly.
-        <br />
-        The speed will follow.
-      </p>
-      <span class="focus-footer">
-        <span></span>
-        ONE GOOD REP AT A TIME
-      </span>
-    </section>
     <section class="weekly-card card">
       <div class="section-heading">
-        <h3>This week’s rhythm</h3>
+        <h3>Weekly practice</h3>
         <Target size={17} />
       </div>
       <p>
@@ -585,15 +520,16 @@
           </div>{/each}
       </div>
       <button class="text-button" disabled={running} onclick={() => navigate('progress')}>
-        Your progress, a beat at a time <ArrowRight size={14} />
+        View progress <ArrowRight size={14} />
       </button>
     </section>
-    <section class="plan-card card">
-      <div class="section-heading">
-        <h3>On the practice pad</h3>
-        <span class="tiny-label">TODAY</span>
-      </div>
-      {#if todaysPlan.length}{#each todaysPlan.slice(0, 3) as item}<button
+    {#if todaysPlan.length}
+      <section class="plan-card card">
+        <div class="section-heading">
+          <h3>Today’s plan</h3>
+          <span class="tiny-label">TODAY</span>
+        </div>
+        {#each todaysPlan.slice(0, 3) as item}<button
             class="planned-item"
             disabled={running}
             onclick={() =>
@@ -605,37 +541,14 @@
               <small>{item.minutes} min · {item.bpm} BPM</small>
             </span>
             <Play size={13} />
-          </button>{/each}{:else}<div class="suggested-plan">
-          <span class="plan-item-icon"><Music2 size={17} /></span>
-          <div>
-            <strong>A little structure helps.</strong>
-            <p>
-              Build a routine you’ll look
-              <br />
-              forward to coming back to.
-            </p>
-          </div>
-        </div>{/if}
-      <button class="text-button" disabled={running} onclick={() => navigate('planner')}>
-        {todaysPlan.length ? 'Edit your practice plan' : 'Make a practice plan'}
-        <ArrowUpRight size={14} />
-      </button>
-    </section>
-    <div class="today-total">
-      <span class="small-line"></span>
-      <span>
-        {todaySeconds >= 60
-          ? `${Math.floor(todaySeconds / 60)} minutes invested in yourself today.`
-          : 'Your next good habit starts with one session.'}
-      </span>
-    </div>
+          </button>{/each}
+        <button class="text-button" disabled={running} onclick={() => navigate('planner')}>
+          Edit practice plan
+          <ArrowUpRight size={14} />
+        </button>
+      </section>
+    {/if}
   </aside>
-</div>
-<div class="page-footer">
-  <span>LESS SCROLLING. MORE ROLLING.</span>
-  <span>
-    Made for the love of the groove <span class="coral"><Asterisk size={13} /></span>
-  </span>
 </div>
 {#if summary}<SessionSummary
     session={summary}

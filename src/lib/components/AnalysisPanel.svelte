@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Mic, Video, ArrowUpRight, ShieldCheck, Radio, Info } from '@lucide/svelte';
+  import { Mic, Video, ArrowUpRight, ShieldCheck, Info } from '@lucide/svelte';
   let {
     micEnabled,
     cameraEnabled,
@@ -36,15 +36,9 @@
 
 <section class="analysis-card card">
   <div class="section-heading">
-    <div class="heading-with-icon">
-      <Radio size={18} />
-      <h3>A little feedback goes a long way</h3>
-    </div>
-    <span class="pill subtle">OPTIONAL</span>
+    <h2>Performance analysis</h2>
+    <span class="pill subtle">Optional</span>
   </div>
-  <p class="section-description">
-    Listen to your timing. See your movement. Find your next small improvement.
-  </p>
   <div class="analysis-tabs" role="tablist" aria-label="Performance analysis">
     <button
       role="tab"
@@ -60,19 +54,14 @@
       class:chosen={tab === 'camera'}
       onclick={() => (tab = 'camera')}
     >
-      <Video size={17} />Stroke lab
-      <span class="tiny-label">BETA</span>
+      <Video size={17} />Camera tracking
+      <span class="tiny-label">Experimental</span>
     </button>
   </div>
   {#if tab === 'mic'}
     <div class="analysis-content">
-      <div class="analysis-illustration" aria-hidden="true">
-        {#each [12, 22, 14, 34, 48, 22, 38, 58, 30, 44, 18, 28, 12] as height, i}<span
-            style={`height:${height}px;opacity:${micEnabled ? Math.max(0.2, Math.min(1, level * 12 + (i % 3) * 0.2)) : 0.35 + (i % 3) * 0.2}`}
-          ></span>{/each}
-      </div>
       <div>
-        <h4>{micEnabled ? 'Listening for your hits' : 'Turn sound into insight'}</h4>
+        <h4>{micEnabled ? 'Listening for your hits' : 'Microphone timing'}</h4>
         <p>
           {micEnabled
             ? `${hits} hits detected this session. Play a few strokes to check the input meter.`
@@ -127,10 +116,9 @@
   {/if}
   <div class:hidden={tab !== 'camera'}>
     <div class="analysis-content">
-      <div class="camera-icon"><Video size={34} strokeWidth={1.4} /></div>
       <div>
-        <h4>Meet your hands halfway</h4>
-        <p>Explore left / right motion balance with an on-device, two-zone motion tracker.</p>
+        <h4>Camera motion tracking</h4>
+        <p>Count motion bursts in left and right hand zones.</p>
         <button class="text-button coral" disabled={busy || running} onclick={toggleCamera}>
           {busy ? 'Connecting…' : cameraEnabled ? 'Disconnect camera' : 'Enable camera'}
           <ArrowUpRight size={16} />

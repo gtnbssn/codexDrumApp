@@ -4,7 +4,7 @@ test('practice controls, a saved session, notes, and persistence', async ({ page
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Find your pocket.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Practice room', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Increase tempo by 5' }).click();
   await expect(page.locator('.bpm-number')).toHaveText('85');
   await page.getByRole('checkbox', { name: '1-bar count-in' }).uncheck();
@@ -73,7 +73,7 @@ test('microphone worklet connects and saves a measured session', async ({ page }
 
 test('camera connects to the local motion pipeline and releases its tracks', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('tab', { name: /Stroke lab/ }).click();
+  await page.getByRole('tab', { name: /Camera tracking/ }).click();
   await page.getByRole('button', { name: 'Enable camera' }).click();
   await expect(page.getByRole('button', { name: 'Disconnect camera' })).toBeVisible();
   await expect(page.locator('video')).toBeVisible();
@@ -94,9 +94,7 @@ test('mobile layout has no horizontal overflow and navigation works', async ({ p
   await page.goto('/');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'My progress', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Your story starts with one session.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No sessions yet' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -162,9 +160,7 @@ test('restoring a valid backup and deleting a session both require confirmation'
     .getByRole('dialog')
     .getByRole('button', { name: 'Delete session', exact: true })
     .click();
-  await expect(
-    page.getByRole('heading', { name: 'Your story starts with one session.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No sessions yet' })).toBeVisible();
 });
 
 test('permission denial explains the issue and keeps ordinary practice available', async ({

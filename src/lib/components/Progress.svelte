@@ -94,15 +94,7 @@
 </script>
 
 <div class="page-intro">
-  <div>
-    <div class="eyebrow">
-      <span class="small-line"></span>
-      THE WORK ADDS UP
-    </div>
-    <!-- prettier-ignore -->
-    <h1>Look how far you’ve come<span class="coral">.</span></h1>
-    <p>Every session is a small investment in your sound.</p>
-  </div>
+  <h1>My progress</h1>
   <div class="backup-buttons">
     <button class="secondary-button" onclick={exportData}><Download size={16} />Export</button>
     <button
@@ -129,7 +121,7 @@
   </div>{/if}
 <div class="stat-grid">
   <div class="stat-card card">
-    <span><Clock3 size={17} />TIME WELL SPENT</span>
+    <span><Clock3 size={17} />Practice time</span>
     <strong>
       {Math.floor(totalMinutes)}
       <small>min</small>
@@ -137,15 +129,15 @@
     <p>Across {practice.data.sessions.length} saved sessions</p>
   </div>
   <div class="stat-card card">
-    <span><Music2 size={17} />SHOWING UP</span>
+    <span><Music2 size={17} />Practice days</span>
     <strong>
       {activeDays}
       <small>days</small>
     </strong>
-    <p>Days you made time for your rhythm</p>
+    <p>Days with a saved session</p>
   </div>
   <div class="stat-card card">
-    <span><Activity size={17} />TIMING ESTIMATE</span>
+    <span><Activity size={17} />Timing estimate</span>
     <strong>{averageTiming === null ? '—' : `${averageTiming}%`}</strong>
     <p>
       {timed.length
@@ -158,7 +150,7 @@
   <section class="card activity-card">
     <div class="section-heading">
       <div>
-        <h3>Your practice rhythm</h3>
+        <h3>Practice minutes</h3>
         <p class="section-description">
           {days[0].toLocaleDateString('en', { month: 'short', day: 'numeric' })} – {days[6].toLocaleDateString(
             'en',
@@ -214,7 +206,7 @@
   </section>
   <section class="card goal-card">
     <div class="section-heading">
-      <h3>A goal you can grow with</h3>
+      <h3>Weekly goal</h3>
       <Target size={18} />
     </div>
     <div
@@ -226,11 +218,6 @@
         <span>of {practice.data.weeklyGoal} min</span>
       </div>
     </div>
-    <p>
-      Short, regular sessions beat
-      <br />
-      one big practice marathon.
-    </p>
     {#if editingGoal}<form
         class="goal-form"
         onsubmit={(e) => {
@@ -263,8 +250,8 @@
 <TimingTrend sessions={practice.data.sessions} />
 <section class="history-section">
   <div class="section-title">
-    <h2>Your session notebook</h2>
-    <span class="muted">{practice.data.sessions.length} sessions, all yours</span>
+    <h2>Sessions</h2>
+    <span class="muted">{practice.data.sessions.length} sessions</span>
   </div>
   {#if practice.data.sessions.length}<div class="history-table card">
       <div class="history-row table-heading">
@@ -334,15 +321,10 @@
             </button>
           </div>{/if}{/each}
     </div>{:else}<div class="empty-state card">
-      <div class="empty-icon"><NotebookPen size={30} strokeWidth={1.4} /></div>
-      <h2>Your story starts with one session.</h2>
-      <p>
-        A few focused minutes is all it takes. Your drills, timing feedback,
-        <br />
-        and reflections will find a home here.
-      </p>
+      <h2>No sessions yet</h2>
+      <p>End a practice session to save its duration, notes, and timing results here.</p>
       <button class="primary-button" onclick={goPractice}>
-        Find your pocket <ArrowRight size={17} />
+        Start practice <ArrowRight size={17} />
       </button>
     </div>{/if}
 </section>

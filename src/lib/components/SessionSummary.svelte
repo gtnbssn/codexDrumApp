@@ -1,7 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { openDialog } from '../utils/dialog';
-  import { Check, ArrowRight, X, NotebookPen } from '@lucide/svelte';
+  import { ArrowRight, X, NotebookPen } from '@lucide/svelte';
   import type { Session } from '../types';
   import { formatTime } from '../utils/timing';
   import { practice, updateNotes } from '../stores/practice.svelte';
@@ -32,9 +32,7 @@
     >
       <X size={20} />
     </button>
-    <div class="success-icon"><Check size={27} /></div>
-    <span class="eyebrow">ANOTHER REP IN THE RIGHT DIRECTION</span>
-    <h2 id="summary-title">Good work. Keep that feeling.</h2>
+    <h2 id="summary-title">Session results</h2>
     <p>
       {#if practice.warning}
         Your session is in memory. Browser saving needs attention; export a backup from My progress
@@ -87,7 +85,7 @@
     <textarea
       id="session-notes"
       bind:value={notes}
-      placeholder="A small win, a tricky bar, something to try next time…"
+      placeholder="Notes for your next session"
       rows="3"></textarea>
     <button class="primary-button full-width" onclick={() => finish(true)}>
       Save notes & view progress <ArrowRight size={17} />
