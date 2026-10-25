@@ -185,16 +185,6 @@
   .analysis-card {
     padding: 20px 16px 0;
   }
-  .analysis-tabs {
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .analysis-tabs > button {
-    font-size: 14px;
-  }
-  .analysis-tabs .tiny-label {
-    display: none;
-  }
   .privacy-note {
     margin: 0 -16px;
     padding: 14px 16px;

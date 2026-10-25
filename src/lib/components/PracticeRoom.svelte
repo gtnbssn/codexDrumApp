@@ -19,8 +19,6 @@
   import { drills, findDrill } from '../data/drills';
   import { Metronome } from '../audio/metronome';
   import { Microphone } from '../analysis/microphone';
-  import { StrokeCamera } from '../analysis/camera';
-  import type { HandFrame } from '../analysis/hand-tracking';
   import { analyzeTiming, formatTime, localDay, weekDays } from '../utils/timing';
   import { practice, addSession } from '../stores/practice.svelte';
   import AnalysisPanel from './AnalysisPanel.svelte';
@@ -68,22 +66,13 @@
   let error = $state('');
   let summary = $state<Session | null>(null);
   let micEnabled = $state(false);
-  let cameraEnabled = $state(false);
-  let cameraConnecting = $state(false);
   let micConnecting = $state(false);
-  let sensorBusy = $derived(micConnecting || cameraConnecting);
   let level = $state(0);
   let hitCount = $state(0);
-  let strokes = $state({ left: 0, right: 0 });
-  let handFrame = $state<HandFrame>({ hands: [], timestamp: 0, processedFrames: 0 });
-  let cameraUsed = false;
-  let cameraInterrupted = false;
   let threshold = $derived(audioSettings.threshold);
   let latency = $derived(audioSettings.latencyMs);
-  let video = $state<HTMLVideoElement>();
   let engine: Metronome | null = null;
   let microphone: Microphone | null = null;
-  let camera: StrokeCamera | null = null;
   let timer: ReturnType<typeof setInterval>;
   let drainTimer: ReturnType<typeof setTimeout>;
   let captureEndTime: number | null = null;
@@ -122,12 +111,12 @@
 
   function mediaError(reason: unknown) {
     if (reason instanceof DOMException && reason.name === 'NotAllowedError')
-      return 'Permission was not granted. Allow access in your browser settings, then try again. You can practice without sensors.';
+      return 'Permission was not granted. Allow access in your browser settings, then try again. You can practice without microphone analysis.';
     if (reason instanceof DOMException && reason.name === 'NotFoundError')
       return 'No input device was found. Connect a device, then try again.';
     return reason instanceof Error
       ? reason.message
-      : 'Could not connect to the device. You can practice without sensors.';
+      : 'Could not connect to the device. You can practice without microphone analysis.';
   }
 
   async function toggleMic() {
@@ -181,7 +170,7 @@
   }
 
   function openCalibration() {
-    if (running || sensorBusy || starting) return;
+    if (running || micConnecting || starting) return;
     microphone?.disconnect();
     microphone = null;
     micEnabled = false;
@@ -196,57 +185,6 @@
     calibrationOpen = false;
   }
 
-  async function toggleCamera() {
-    error = '';
-    if (camera) {
-      camera.disconnect();
-      camera = null;
-      cameraEnabled = false;
-      cameraConnecting = false;
-      handFrame = { hands: [], timestamp: 0, processedFrames: 0 };
-      return;
-    }
-    if (!video) return;
-    cameraConnecting = true;
-    const candidate = new StrokeCamera();
-    camera = candidate; // Also own it while loading, so cancellation/unmount releases it.
-    try {
-      await candidate.connect(
-        video,
-        (side) => {
-          if (running && !finishing && !isCountIn) strokes[side]++;
-        },
-        (frame) => {
-          handFrame = frame;
-          if (!running || isCountIn) candidate.reset();
-        },
-        (reason) => {
-          cameraInterrupted ||= running;
-          camera = null;
-          cameraEnabled = false;
-          handFrame = { hands: [], timestamp: 0, processedFrames: 0 };
-          error = mediaError(reason);
-        },
-      );
-      if (disposed || camera !== candidate) {
-        candidate.disconnect();
-        return;
-      }
-      cameraEnabled = true;
-    } catch (reason) {
-      candidate.disconnect();
-      if (camera === candidate) {
-        camera = null;
-        if (!(reason instanceof DOMException && reason.name === 'AbortError'))
-          error = mediaError(reason);
-      }
-    } finally {
-      if (camera === candidate || !camera) {
-        cameraConnecting = false;
-      }
-    }
-  }
-
   async function start() {
     error = '';
     starting = true;
@@ -259,10 +197,6 @@
       expected = [];
       observed = [];
       hitCount = 0;
-      strokes = { left: 0, right: 0 };
-      camera?.reset();
-      cameraUsed = cameraEnabled;
-      cameraInterrupted = false;
       elapsed = 0;
       captureEndTime = null;
       finishing = false;
@@ -331,16 +265,9 @@
           bpm,
           endBpm: currentBpm,
           completed,
-          notes: [
-            inputInterrupted
-              ? 'Audio input was interrupted while finishing. Timing analysis is unavailable.'
-              : '',
-            cameraInterrupted
-              ? 'Camera tracking was interrupted; stroke estimates cover part of this session.'
-              : '',
-          ]
-            .filter(Boolean)
-            .join(' '),
+          notes: inputInterrupted
+            ? 'Audio input was interrupted while finishing. Timing analysis is unavailable.'
+            : '',
           timing:
             micEnabled && !inputInterrupted
               ? analyzeTiming(
@@ -349,8 +276,6 @@
                 )
               : null,
           latencyMs: micEnabled ? latency : undefined,
-          strokes: cameraUsed ? { ...strokes } : null,
-          strokeMethod: cameraUsed ? 'mediapipe' : undefined,
         };
         addSession(session);
         summary = session;
@@ -364,9 +289,6 @@
       microphone = null;
       micEnabled = false;
       level = 0;
-      camera?.disconnect();
-      camera = null;
-      cameraEnabled = false;
     };
     // Input for the final played notes can still be in flight after the click stops.
     // Keep capture alive briefly; use the fixed corrected-time boundary above.
@@ -391,7 +313,6 @@
     clearInterval(timer);
     clearTimeout(drainTimer);
     microphone?.disconnect();
-    camera?.disconnect();
     void engine?.destroy();
   });
 </script>
@@ -402,7 +323,7 @@
       event.key === 'Enter' &&
       event.target === document.body &&
       !summary &&
-      !sensorBusy &&
+      !micConnecting &&
       !starting &&
       !finishing &&
       !calibrationOpen
@@ -568,7 +489,7 @@
         </div>
         <button
           class="primary-button start-button"
-          disabled={starting || sensorBusy || finishing}
+          disabled={starting || micConnecting || finishing}
           onclick={() => (running ? finish() : start())}
         >
           {#if finishing}Collecting final hits…{:else if running}<Square
@@ -579,25 +500,19 @@
               : 'Start practice'}{/if}
         </button>
       </div>
-      {#if error && !micEnabled && !cameraEnabled}<p class="inline-error" role="alert">
+      {#if error && !micEnabled}<p class="inline-error" role="alert">
           {error}
         </p>{/if}
     </section>
     <AnalysisPanel
       {micEnabled}
-      {cameraEnabled}
-      busy={sensorBusy}
+      busy={micConnecting}
       {running}
       {level}
       hits={hitCount}
-      {strokes}
-      {handFrame}
-      {cameraConnecting}
       calibrate={openCalibration}
       {calibrationNotice}
-      bind:video
       {toggleMic}
-      {toggleCamera}
       {error}
     />
   </div>

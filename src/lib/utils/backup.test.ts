@@ -18,7 +18,6 @@ const valid = (): PracticeData => ({
       completed: true,
       notes: 'Relaxed hands',
       timing: null,
-      strokes: null,
     },
   ],
 });
@@ -38,16 +37,16 @@ describe('backup validation', () => {
     data.sessions[0].latencyMs = Number.NaN;
     expect(validateData(data)).toBe(false);
   });
-  it('preserves legacy motion counts and new MediaPipe stroke estimates', () => {
+  it('accepts old backups with retired fields without requiring them for new sessions', () => {
     const data = valid();
-    data.sessions[0].strokes = { left: 12, right: 13 };
+    Object.assign(data.sessions[0], {
+      strokes: { left: 12, right: 13 },
+      strokeMethod: 'mediapipe',
+    });
     expect(validateData(data)).toBe(true);
-    data.sessions[0].strokeMethod = 'mediapipe';
-    expect(validateData(data)).toBe(true);
-    data.sessions[0].strokeMethod = 'unrecognized' as never;
-    expect(validateData(data)).toBe(false);
+    expect(validateData(valid())).toBe(true);
   });
-  it('rejects malformed sessions, dates, sensors, and invalid settings', () => {
+  it('rejects malformed sessions, dates, timing results, and invalid settings', () => {
     for (const data of [
       null,
       {},
@@ -63,8 +62,5 @@ describe('backup validation', () => {
     const badTiming = valid();
     badTiming.sessions[0].timing = {} as never;
     expect(validateData(badTiming)).toBe(false);
-    const badCamera = valid();
-    badCamera.sessions[0].strokes = { left: -2, right: 10 };
-    expect(validateData(badCamera)).toBe(false);
   });
 });

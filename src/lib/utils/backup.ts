@@ -28,7 +28,6 @@ export function validateData(value: unknown): value is PracticeData {
         s &&
         (s.latencyMs === undefined ||
           (Number.isFinite(s.latencyMs) && s.latencyMs >= -200 && s.latencyMs <= 1000)) &&
-        (s.strokeMethod === undefined || s.strokeMethod === 'mediapipe') &&
         typeof s.id === 'string' &&
         typeof s.drillId === 'string' &&
         typeof s.drillName === 'string' &&
@@ -44,13 +43,7 @@ export function validateData(value: unknown): value is PracticeData {
         s.endBpm <= 240 &&
         typeof s.completed === 'boolean' &&
         typeof s.notes === 'string' &&
-        isTiming(s.timing) &&
-        (s.strokes === null ||
-          (s.strokes &&
-            Number.isFinite(s.strokes.left) &&
-            s.strokes.left >= 0 &&
-            Number.isFinite(s.strokes.right) &&
-            s.strokes.right >= 0)),
+        isTiming(s.timing),
     ) &&
     Array.isArray(data.plan) &&
     data.plan.every(

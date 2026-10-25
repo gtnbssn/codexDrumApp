@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Vite runs on port 5173 by default. Microphone and camera access require a secure origin (HTTPS or localhost) and explicit browser permission. Headphones keep the metronome out of the microphone input.
+Vite runs on port 5173 by default. Microphone access requires a secure origin (HTTPS or localhost) and explicit browser permission. Headphones keep the metronome out of the microphone input.
 
 ```sh
 npm run check       # Svelte + TypeScript diagnostics
@@ -31,7 +31,7 @@ Browser tests use `/usr/bin/chromium`. Set `CHROMIUM_PATH` to another Chromium e
 - Follow a live sticking grid. The count-in is excluded from saved practice time and timing analysis.
 - Save completed or partial sessions, add reflections, and review practice time, timing estimates, and weekly goals.
 - Build a recurring weekly practice plan, then launch drills with your planned tempo and duration.
-- Enable optional microphone onset detection or an experimental MediaPipe hand tracking.
+- Enable optional microphone onset detection for timing feedback.
 - Measure acoustic round-trip latency in a short, separate calibration test and save compensation for future sessions.
 - Export/import JSON backups. Import requires confirmation before replacing your data. Session deletion also requires confirmation.
 
@@ -66,10 +66,6 @@ src/
     analysis/microphone.ts      Microphone lifecycle and AudioWorklet connection
     analysis/calibrate.ts       Cancellable loopback capture and click scheduling
     analysis/latency.ts         Probe matching, robust latency estimate, route checks
-    analysis/camera.ts          Camera lifecycle and one-frame-at-a-time worker bridge
-    analysis/hand-tracking.worker.ts  MediaPipe inference, mirroring, handedness
-    analysis/hand-strokes.ts    Pure landmark movement-to-stroke state machine
-    analysis/hand-tracking.ts   Worker messages, landmark types, hand connections
     stores/practice.svelte.ts   Reactive history/plan store and browser persistence
     stores/audio-settings.svelte.ts  Device-specific latency/threshold persistence
     utils/timing.ts            Hit matching, timing statistics, calendar helpers
@@ -78,13 +74,9 @@ src/
     components/               Practice room, feedback, library, progress, planner
 public/
   onset-processor.js           Audio-thread transient detector
-  mediapipe/                   Pinned hand model, license, generated WASM assets
-scripts/
-  prepare-mediapipe.mjs         Check model hash and copy the pinned WASM runtime
 tests/
   practice.e2e.ts              Browser workflow and media connection checks
   calibration.e2e.ts           Known-delay loopback, persistence, failures, cancellation
-  camera.e2e.ts                Real MediaPipe inference, stroke capture, lifecycle failures
 ```
 
 [`docs/how-it-works.md`](docs/how-it-works.md) explains timing, scoring, storage, and how to add a drill.
@@ -92,11 +84,5 @@ tests/
 ## Measurement limits
 
 Microphone analysis detects **amplitude transients**, not drum types or hand identity. It stores timestamps and aggregate results, never raw audio. Timing estimates depend on your microphone, room, threshold, and hardware latency. Use the calibration test or enter a known compensation; positive values shift detected hits earlier. At fast subdivisions, multiple hits can fall within the matching window; treat scores as approximate feedback, not a certification of accuracy.
-
-The camera uses **MediaPipe Hand Landmarker** to find 21 landmarks per hand, show a mirrored overlay, and distinguish your anatomical left and right hands. Open **Performance analysis → Camera tracking → Enable camera**; keep the camera still with a front view of both hands, good lighting, and visible palms/wrists. The first connection loads about 21 MB of model/runtime assets from this app's own origin. These are only loaded when you enable the feature. It needs a current browser with WebAssembly, OffscreenCanvas, WebGL 2, and ImageBitmap support. A failed connection reports an error and leaves practice available.
-
-Counts are **estimated hand strokes**: a lift, downward palm movement, and rebound. They start after the session count-in and stop when practice ends. Previewing hands does not add to a session. Slow devices drop frames rather than building a backlog. Small finger/wrist strokes, fast rolls, occlusion by sticks, crossed hands, and poor lighting can cause missed or incorrect counts. This does not recognize sticks, confirm drum contact, assess grip, rate technique, or score camera timing. Use the microphone for timing feedback. Old sessions keep their original motion-burst label.
-
-The model runs in a worker on your device; images and landmarks are discarded, and only aggregate left/right counts are saved. The pinned model and license are in [`public/mediapipe/`](public/mediapipe/README.md). `npm ci` verifies its checksum and copies the matching pinned WASM runtime automatically; development/build commands also prepare the runtime. Neither installation nor camera use downloads the model from an external CDN. Browser tests run actual inference on a known hand image and controlled image movement, plus failure/cancellation paths. Real drumming accuracy still needs validation on your hardware.
 
 The app uses `localStorage`, so history is specific to a browser and origin. Export backups before clearing site data, changing the address, or changing devices. There is no server or cloud synchronization. An in-progress session is saved when you end it or the timer completes; an unexpected tab closure can lose that session. Navigation is disabled while practicing to prevent accidental loss.

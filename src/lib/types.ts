@@ -41,9 +41,6 @@ export interface Session {
   completed: boolean;
   notes: string;
   timing: TimingResult | null;
-  strokes: { left: number; right: number } | null;
-  /** Absent on older sessions, whose camera counted image motion bursts. */
-  strokeMethod?: 'mediapipe';
 }
 
 export interface PlanItem {
