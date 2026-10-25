@@ -2,6 +2,7 @@ import type { AudioRoute } from './latency';
 
 /** Captures transients only. No raw audio is recorded, stored, or uploaded. */
 export class Microphone {
+  private closed = false;
   private stream: MediaStream | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
   private processor: AudioWorkletNode | null = null;
@@ -15,10 +16,16 @@ export class Microphone {
     if (!navigator.mediaDevices?.getUserMedia)
       throw new Error('Microphone access needs HTTPS or localhost and a supported browser.');
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
+      if (this.closed) {
+        stream.getTracks().forEach((track) => track.stop());
+        throw new DOMException('Microphone connection cancelled.', 'AbortError');
+      }
+      this.stream = stream;
       await context.audioWorklet.addModule('/onset-processor.js');
+      if (this.closed) throw new DOMException('Microphone connection cancelled.', 'AbortError');
       this.source = context.createMediaStreamSource(this.stream);
       this.processor = new AudioWorkletNode(context, 'pocket-onset');
       this.silence = context.createGain();
@@ -56,6 +63,7 @@ export class Microphone {
     };
   }
   disconnect() {
+    this.closed = true;
     this.stream?.getTracks().forEach((track) => track.stop());
     this.processor?.disconnect();
     this.source?.disconnect();

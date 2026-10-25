@@ -26,6 +26,10 @@ With positive microphone compensation, ending first freezes the practice duratio
 
 ## 3. Microphone input becomes timestamps
 
+`MicrophoneTracking.svelte` places an accessible on/off switch immediately above the main practice controls. Turning it on without a current reliable calibration opens the calibration dialog; applying the result continues the connection, while cancelling leaves tracking off. The active state shows a headphone reminder, input meter and session hit count. Switching is locked while practice runs, and ending practice releases capture.
+
+`hasCalibration()` requires a reliable saved measurement whose delay and detection threshold match the current settings. A legacy manual offset is insufficient. The audio route is verified on capture connection and again before starting tracked practice; a detected mismatch resets calibration, disconnects capture and requires recalibration. Manual adjustment controls are omitted so the measured settings stay together. Ordinary practice remains available with tracking off.
+
 `Microphone` connects an input stream to `public/onset-processor.js`, an AudioWorklet running on the audio thread. Each audio block is reduced to RMS amplitude. A transient must exceed the chosen threshold and rise above a decaying amplitude envelope. A 75 ms refractory period reduces duplicate detection from one hit's decay. This also limits detection of very fast rolls.
 
 The worklet posts hit timestamps and a live amplitude meter to the UI. A zero-gain output keeps the worklet active without monitoring the microphone through your speakers. Echo cancellation, noise suppression, and automatic gain control are requested off to preserve transients; browsers may still apply device processing.
@@ -40,7 +44,7 @@ Detected times and scheduled times share one audio clock. The latency compensati
 
 The scheduling loop checks the audio clock; stalled/suspended audio, missed scheduling deadlines, or a wall-clock timeout fail the run. An `AbortSignal` cancels the timers and scheduled tones and disconnects the microphone. If permission arrives after cancellation, the late stream is also stopped. Calibration does not create sessions, save raw audio, change compensation automatically, or monitor the microphone through the speakers. The user explicitly applies a successful result.
 
-`audio-settings.svelte.ts` persists compensation, threshold, and optional measurement/route metadata under `pocket.audio.v1`. It is separate from history backups: calibration belongs to the local audio setup. Known microphone IDs, sample rates, and exposed default-output labels are compared on capture startup. A detected mismatch clears the measurement and resets compensation to zero. Some routing changes are invisible to browser APIs, so the UI also asks users to recalibrate when their setup changes. Older history files remain valid; new microphone sessions include an optional `latencyMs` recording the applied value.
+`audio-settings.svelte.ts` persists compensation, threshold, and optional measurement/route metadata under `pocket.audio.v1`. It is separate from history backups: calibration belongs to the local audio setup. Known microphone IDs, sample rates, and exposed default-output labels are compared on capture startup. A detected mismatch clears the measurement, resets compensation to zero and prevents tracking until recalibration. Some routing changes are invisible to browser APIs, so the UI also asks users to recalibrate when their setup changes. Older history files remain valid; new microphone sessions include an optional `latencyMs` recording the applied value.
 
 ## 4. Matching and scoring
 
@@ -67,3 +71,5 @@ Unit tests exercise scoring, missed/extra hits, tempo rules, calendar boundaries
 Calibration tests feed the real synthesized clicks through a known Web Audio delay into the actual onset AudioWorklet. They verify measurement, saved settings after reload, compensated scoring including a final in-flight hit, known device-change invalidation, silent-input rejection, permission errors, cancellation, and cleanup of late permission streams. Pure unit tests cover the median, outliers, missing hits, echoes, search-window boundaries, and unreliable jitter.
 
 These controlled audio fixtures verify the input pipeline and compensation logic. Real-world hit accuracy still needs instrument/device trials and a labeled dataset before making stronger performance claims.
+
+Tracking tests verify switch placement, keyboard operation, the active headphone reminder, switching off, capture cleanup, and the calibration gate for missing measurements or mismatched offsets/thresholds.

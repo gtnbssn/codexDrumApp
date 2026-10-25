@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { seedCalibration } from './helpers/calibration';
 
 test('practice controls, a saved session, notes, and persistence', async ({ page }) => {
   const errors: string[] = [];
@@ -55,9 +56,11 @@ test('planner creates a custom duration and starts the configured drill', async 
 });
 
 test('microphone worklet connects and saves a measured session', async ({ page }) => {
+  await seedCalibration(page);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Enable microphone' }).click();
-  await expect(page.getByRole('button', { name: 'Disconnect microphone' })).toBeVisible();
+  await page.getByRole('switch', { name: 'Microphone tracking' }).click();
+  await expect(page.getByRole('switch', { name: 'Microphone tracking' })).toBeChecked();
+  await expect(page.getByText('Use headphones', { exact: true })).toBeVisible();
   await page.getByRole('checkbox', { name: '1-bar count-in' }).uncheck();
   await page.getByRole('button', { name: 'Start practice' }).click();
   await page.waitForTimeout(1800);
@@ -150,13 +153,14 @@ test('permission denial explains the issue and keeps ordinary practice available
 }) => {
   const context = await browser.newContext({ permissions: [] });
   const page = await context.newPage();
+  await seedCalibration(page);
   await page.addInitScript(() => {
     navigator.mediaDevices.getUserMedia = async () => {
       throw new DOMException('Denied', 'NotAllowedError');
     };
   });
   await page.goto('http://127.0.0.1:5173');
-  await page.getByRole('button', { name: 'Enable microphone' }).click();
+  await page.getByRole('switch', { name: 'Microphone tracking' }).click();
   await expect(page.getByRole('alert').first()).toContainText('Permission was not granted');
   await expect(page.getByRole('button', { name: 'Start practice' })).toBeEnabled();
   await context.close();

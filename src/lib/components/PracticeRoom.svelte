@@ -21,13 +21,14 @@
   import { Microphone } from '../analysis/microphone';
   import { analyzeTiming, formatTime, localDay, weekDays } from '../utils/timing';
   import { practice, addSession } from '../stores/practice.svelte';
-  import AnalysisPanel from './AnalysisPanel.svelte';
+  import MicrophoneTracking from './MicrophoneTracking.svelte';
   import SessionSummary from './SessionSummary.svelte';
   import LatencyCalibration from './LatencyCalibration.svelte';
   import {
     audioSettings,
     applyCalibration,
     resetCalibration,
+    hasCalibration,
   } from '../stores/audio-settings.svelte';
   import { routeChanged } from '../analysis/latency';
   import type { SavedCalibration } from '../analysis/latency';
@@ -56,6 +57,7 @@
   let starting = $state(false);
   let finishing = $state(false);
   let calibrationOpen = $state(false);
+  let enableAfterCalibration = false;
   let calibrationNotice = $state('');
   let elapsed = $state(0);
   let step = $state(-1);
@@ -119,20 +121,41 @@
       : 'Could not connect to the device. You can practice without microphone analysis.';
   }
 
+  function disconnectMic() {
+    microphone?.disconnect();
+    microphone = null;
+    micEnabled = false;
+    level = 0;
+  }
+
+  async function checkAudioSetup(input: Microphone) {
+    const route = await input.getRoute(audio().context);
+    if (disposed) return false;
+    if (audioSettings.calibration && routeChanged(audioSettings.calibration.route, route)) {
+      resetCalibration();
+      calibrationNotice = 'Your audio setup changed. Calibrate again before turning tracking on.';
+    }
+    return hasCalibration();
+  }
+
   async function toggleMic() {
+    if (running || starting || micConnecting || calibrationOpen) return;
     error = '';
     if (micEnabled) {
-      microphone?.disconnect();
-      microphone = null;
-      micEnabled = false;
-      level = 0;
+      disconnectMic();
+      return;
+    }
+    if (!hasCalibration()) {
+      openCalibration(true);
       return;
     }
     micConnecting = true;
     const candidate = new Microphone();
+    microphone = candidate; // Own pending capture too, so leaving the page can cancel it.
     try {
       const clock = audio();
       await clock.context.resume();
+      if (disposed) return;
       await candidate.connect(
         clock.context,
         (time) => {
@@ -148,41 +171,40 @@
         },
         (value) => (level = value),
       );
-      const route = await candidate.getRoute(clock.context);
-      if (disposed) {
-        candidate.disconnect();
+      if (!(await checkAudioSetup(candidate))) {
+        disconnectMic();
         return;
       }
-      microphone = candidate;
-      if (audioSettings.calibration && routeChanged(audioSettings.calibration.route, route)) {
-        resetCalibration();
-        calibrationNotice =
-          'Your microphone, output device, or sample rate changed. Compensation was reset to 0 ms; calibrate this audio setup.';
-      }
-      microphone.setThreshold(threshold);
+      candidate.setThreshold(threshold);
+      hitCount = 0;
       micEnabled = true;
     } catch (reason) {
-      candidate.disconnect();
-      error = mediaError(reason);
+      disconnectMic();
+      if (!disposed) error = mediaError(reason);
     } finally {
       micConnecting = false;
     }
   }
 
-  function openCalibration() {
+  function openCalibration(enableTracking = micEnabled) {
     if (running || micConnecting || starting) return;
-    microphone?.disconnect();
-    microphone = null;
-    micEnabled = false;
-    level = 0;
+    enableAfterCalibration = enableTracking;
+    disconnectMic();
     error = '';
     calibrationOpen = true;
   }
 
-  function useCalibration(result: SavedCalibration) {
+  function closeCalibration() {
+    calibrationOpen = false;
+    enableAfterCalibration = false;
+  }
+
+  async function useCalibration(result: SavedCalibration) {
     applyCalibration(result);
     calibrationNotice = '';
-    calibrationOpen = false;
+    const shouldEnable = enableAfterCalibration;
+    closeCalibration();
+    if (shouldEnable) await toggleMic();
   }
 
   async function start() {
@@ -191,6 +213,11 @@
     try {
       const clock = audio();
       await clock.context.resume();
+      if (disposed) return;
+      if (micEnabled && microphone && !(await checkAudioSetup(microphone))) {
+        disconnectMic();
+        return;
+      }
       if (disposed) return;
       clock.volume = volume / 100;
       clock.muted = muted;
@@ -285,10 +312,7 @@
       onRunning(false);
       step = -1;
       isCountIn = false;
-      microphone?.disconnect();
-      microphone = null;
-      micEnabled = false;
-      level = 0;
+      disconnectMic();
     };
     // Input for the final played notes can still be in flight after the click stops.
     // Keep capture alive briefly; use the fixed corrected-time boundary above.
@@ -358,6 +382,18 @@
           {#if drill.id === item.id}<span class="selection-tick"><Check size={11} /></span>{/if}
         </button>{/each}
     </div>
+
+    <MicrophoneTracking
+      enabled={micEnabled}
+      busy={micConnecting}
+      {running}
+      {level}
+      hits={hitCount}
+      toggle={toggleMic}
+      calibrate={() => openCalibration()}
+      notice={calibrationNotice}
+      {error}
+    />
 
     <section class="metronome-card card" aria-label="Practice controls">
       <div class="metronome-heading">
@@ -500,21 +536,7 @@
               : 'Start practice'}{/if}
         </button>
       </div>
-      {#if error && !micEnabled}<p class="inline-error" role="alert">
-          {error}
-        </p>{/if}
     </section>
-    <AnalysisPanel
-      {micEnabled}
-      busy={micConnecting}
-      {running}
-      {level}
-      hits={hitCount}
-      calibrate={openCalibration}
-      {calibrationNotice}
-      {toggleMic}
-      {error}
-    />
   </div>
 
   <aside class="practice-aside">
@@ -581,7 +603,7 @@
 {#if calibrationOpen}<LatencyCalibration
     getContext={() => audio().context}
     apply={useCalibration}
-    close={() => (calibrationOpen = false)}
+    close={closeCalibration}
   />{/if}
 {#if summary}<SessionSummary
     session={summary}
