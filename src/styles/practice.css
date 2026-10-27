@@ -440,26 +440,6 @@
 .analysis-card h2 {
   font-size: 18px;
 }
-.analysis-tabs {
-  display: flex;
-  gap: 20px;
-  border-bottom: 1px solid var(--line);
-  margin-top: 12px;
-}
-.analysis-tabs > button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 15px;
-  min-height: 48px;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-  padding: 10px 0;
-}
-.analysis-tabs > button.chosen {
-  color: var(--coral);
-  border-color: var(--coral);
-}
 .analysis-content {
   padding: 20px 0 14px;
 }
@@ -536,46 +516,6 @@
 .sensor-settings + .fine-print {
   margin-bottom: 16px;
 }
-.camera-preview {
-  position: relative;
-  max-width: 400px;
-  aspect-ratio: 4/3;
-  margin: 0 auto 20px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #26333d;
-}
-.camera-preview video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
-}
-.camera-zones {
-  position: absolute;
-  inset: 15% 10% 10%;
-  display: flex;
-  gap: 8px;
-}
-.camera-zones > span {
-  position: relative;
-  flex: 1;
-  padding: 10px;
-  border: 2px dashed white;
-  border-radius: 8px;
-  color: white;
-  font-size: 18px;
-  text-shadow: 0 1px 3px black;
-}
-.camera-zones b {
-  float: right;
-}
-.camera-zones i {
-  position: absolute;
-  inset: 0;
-  background: #b7472b60;
-}
-
 /* Calibration is separate from a timed practice session. */
 .latency-settings {
   border-top: 1px solid var(--line);

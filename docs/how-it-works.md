@@ -22,7 +22,7 @@ The engine reports both scheduled notes and visible ticks. `PracticeRoom` collec
 
 The session timer uses elapsed audio-clock time. Ending a session cancels future clicks, closes input streams, and saves a session if at least one second of practice elapsed. Very short starts/count-ins are discarded. Navigation is blocked during a session, and the browser is asked to warn before closing the tab.
 
-With positive microphone compensation, ending first freezes the practice duration and stops the click. Capture remains alive through the last note’s late-hit window plus the configured delay and a 60 ms processing allowance, then closes the input and saves. This wait follows the audio clock, with a wall-clock timeout; interrupted capture produces no timing score. Camera counts freeze immediately. This wait does not add practice time. Hit times are compensated before checking session boundaries. The first and last note receive a small early/late grace window, capped at half a subdivision so a count-in hit cannot become a practice hit.
+With positive microphone compensation, ending first freezes the practice duration and stops the click. Capture remains alive through the last note’s late-hit window plus the configured delay and a 60 ms processing allowance, then closes the input and saves. This wait follows the audio clock, with a wall-clock timeout; interrupted capture produces no timing score. This wait does not add practice time. Hit times are compensated before checking session boundaries. The first and last note receive a small early/late grace window, capped at half a subdivision so a count-in hit cannot become a practice hit.
 
 ## 3. Microphone input becomes timestamps
 
@@ -54,22 +54,16 @@ The scheduling loop checks the audio clock; stalled/suspended audio, missed sche
 
 Misses and extras lower the score. A session with no captured hits scores zero. A session without microphone input has no timing score, rather than an invented zero or a passing score. At high speeds, the windows for neighboring notes overlap, so this simple nearest-note matching is approximate. Isolated time-domain scoring cannot identify which hand played a hit.
 
-## 5. Camera input becomes motion counts
-
-`StrokeCamera` downsamples each frame to 80 × 60 pixels. It compares RGB changes with the previous frame inside two zones. A rise in changed pixels counts as a motion burst, with a 150 ms per-zone cooldown. The image and zone labels are mirrored together. Counts are saved only while a session is running, after the count-in.
-
-This deliberately small, readable experiment has no pretrained model. Lighting changes, body motion, a moving camera, occlusion, and slow movements can all affect counts. It cannot infer contact, grip, or technique.
-
-## 6. Practice history is local
+## 5. Practice history is local
 
 `practice.svelte.ts` exposes one reactive `$state` object. Explicit functions change sessions, notes, plan items, or the weekly goal, then serialize data to `pocket.practice.v1` in `localStorage`. Views derive totals from real sessions. Weekly charts use local calendar days, Monday through Sunday. The planner is recurring, not a dated task checklist.
 
 Backups contain versioned JSON with sessions, plan items, and the weekly goal. `validateData()` checks imported data before asking to replace existing state. The application never evaluates imported text as code. If saving fails, in-memory data remains available and the UI asks you to export it.
 
-## 7. What the tests establish
+## 6. What the tests establish
 
-Unit tests exercise scoring, missed/extra hits, tempo rules, calendar boundaries, backup validation, and synthetic transient detection. Browser tests run actual Chromium against Vite: session saving/reloading, notes, drill selection, planner settings, backup flows, microphone worklet connection, camera capture/cleanup, and mobile overflow.
+Unit tests exercise scoring, missed/extra hits, tempo rules, calendar boundaries, backup validation, and synthetic transient detection. Browser tests run actual Chromium against Vite: session saving/reloading, notes, drill selection, planner settings, backup flows, microphone worklet connection, and mobile overflow.
 
 Calibration tests feed the real synthesized clicks through a known Web Audio delay into the actual onset AudioWorklet. They verify measurement, saved settings after reload, compensated scoring including a final in-flight hit, known device-change invalidation, silent-input rejection, permission errors, cancellation, and cleanup of late permission streams. Pure unit tests cover the median, outliers, missing hits, echoes, search-window boundaries, and unreliable jitter.
 
-The fake browser microphone and camera prove that the input pipelines work. They do not prove real-world hit accuracy or stroke recognition. Those need instrument/device trials and a more rigorous labeled dataset before making stronger performance claims.
+The fake browser microphone verifies the input pipeline. It does not establish real-world hit accuracy. That requires instrument/device trials and a more rigorous labeled dataset before making stronger performance claims.

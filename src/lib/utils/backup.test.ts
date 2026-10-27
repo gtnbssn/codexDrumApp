@@ -18,7 +18,6 @@ const valid = (): PracticeData => ({
       completed: true,
       notes: 'Relaxed hands',
       timing: null,
-      strokes: null,
     },
   ],
 });
@@ -38,7 +37,13 @@ describe('backup validation', () => {
     data.sessions[0].latencyMs = Number.NaN;
     expect(validateData(data)).toBe(false);
   });
-  it('rejects malformed sessions, dates, sensors, and invalid settings', () => {
+  it('accepts older backups with retired fields and new sessions without them', () => {
+    const data = valid();
+    Object.assign(data.sessions[0], { strokes: { left: 12, right: 13 } });
+    expect(validateData(data)).toBe(true);
+    expect(validateData(valid())).toBe(true);
+  });
+  it('rejects malformed sessions, dates, timing results, and invalid settings', () => {
     for (const data of [
       null,
       {},
@@ -54,8 +59,5 @@ describe('backup validation', () => {
     const badTiming = valid();
     badTiming.sessions[0].timing = {} as never;
     expect(validateData(badTiming)).toBe(false);
-    const badCamera = valid();
-    badCamera.sessions[0].strokes = { left: -2, right: 10 };
-    expect(validateData(badCamera)).toBe(false);
   });
 });

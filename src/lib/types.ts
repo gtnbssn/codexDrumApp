@@ -41,7 +41,6 @@ export interface Session {
   completed: boolean;
   notes: string;
   timing: TimingResult | null;
-  strokes: { left: number; right: number } | null;
 }
 
 export interface PlanItem {

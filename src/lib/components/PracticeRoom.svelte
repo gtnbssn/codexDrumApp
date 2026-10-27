@@ -19,7 +19,6 @@
   import { drills, findDrill } from '../data/drills';
   import { Metronome } from '../audio/metronome';
   import { Microphone } from '../analysis/microphone';
-  import { StrokeCamera } from '../analysis/camera';
   import { analyzeTiming, formatTime, localDay, weekDays } from '../utils/timing';
   import { practice, addSession } from '../stores/practice.svelte';
   import AnalysisPanel from './AnalysisPanel.svelte';
@@ -67,18 +66,13 @@
   let error = $state('');
   let summary = $state<Session | null>(null);
   let micEnabled = $state(false);
-  let cameraEnabled = $state(false);
   let sensorBusy = $state(false);
   let level = $state(0);
   let hitCount = $state(0);
-  let strokes = $state({ left: 0, right: 0 });
-  let motion = $state([0, 0]);
   let threshold = $derived(audioSettings.threshold);
   let latency = $derived(audioSettings.latencyMs);
-  let video = $state<HTMLVideoElement>();
   let engine: Metronome | null = null;
   let microphone: Microphone | null = null;
-  let camera: StrokeCamera | null = null;
   let timer: ReturnType<typeof setInterval>;
   let drainTimer: ReturnType<typeof setTimeout>;
   let captureEndTime: number | null = null;
@@ -191,39 +185,6 @@
     calibrationOpen = false;
   }
 
-  async function toggleCamera() {
-    error = '';
-    if (cameraEnabled) {
-      camera?.disconnect();
-      camera = null;
-      cameraEnabled = false;
-      return;
-    }
-    if (!video) return;
-    sensorBusy = true;
-    const candidate = new StrokeCamera();
-    try {
-      await candidate.connect(
-        video,
-        (side) => {
-          if (running && !finishing && !isCountIn) strokes[side]++;
-        },
-        (left, right) => (motion = [left, right]),
-      );
-      if (disposed) {
-        candidate.disconnect();
-        return;
-      }
-      camera = candidate;
-      cameraEnabled = true;
-    } catch (reason) {
-      candidate.disconnect();
-      error = mediaError(reason);
-    } finally {
-      sensorBusy = false;
-    }
-  }
-
   async function start() {
     error = '';
     starting = true;
@@ -236,7 +197,6 @@
       expected = [];
       observed = [];
       hitCount = 0;
-      strokes = { left: 0, right: 0 };
       elapsed = 0;
       captureEndTime = null;
       finishing = false;
@@ -316,7 +276,6 @@
                 )
               : null,
           latencyMs: micEnabled ? latency : undefined,
-          strokes: cameraEnabled ? { ...strokes } : null,
         };
         addSession(session);
         summary = session;
@@ -330,9 +289,6 @@
       microphone = null;
       micEnabled = false;
       level = 0;
-      camera?.disconnect();
-      camera = null;
-      cameraEnabled = false;
     };
     // Input for the final played notes can still be in flight after the click stops.
     // Keep capture alive briefly; use the fixed corrected-time boundary above.
@@ -357,7 +313,6 @@
     clearInterval(timer);
     clearTimeout(drainTimer);
     microphone?.disconnect();
-    camera?.disconnect();
     void engine?.destroy();
   });
 </script>
@@ -545,24 +500,19 @@
               : 'Start practice'}{/if}
         </button>
       </div>
-      {#if error && !micEnabled && !cameraEnabled}<p class="inline-error" role="alert">
+      {#if error && !micEnabled}<p class="inline-error" role="alert">
           {error}
         </p>{/if}
     </section>
     <AnalysisPanel
       {micEnabled}
-      {cameraEnabled}
       busy={sensorBusy}
       {running}
       {level}
       hits={hitCount}
-      {strokes}
-      {motion}
       calibrate={openCalibration}
       {calibrationNotice}
-      bind:video
       {toggleMic}
-      {toggleCamera}
       {error}
     />
   </div>

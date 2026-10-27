@@ -76,10 +76,7 @@
         {#if session.latencyMs !== undefined}Compensation: {session.latencyMs} ms.{/if}
       </p>
     {/if}
-    {#if session.strokes}<p class="fine-print">
-        Camera motion bursts: {session.strokes.left} left · {session.strokes.right} right. Motion counts
-        are experimental.
-      </p>{/if}
+
     <label class="notes-label" for="session-notes">
       <NotebookPen size={16} /> What did you notice?
     </label>

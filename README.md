@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Vite runs on port 5173 by default. Microphone and camera access require a secure origin (HTTPS or localhost) and explicit browser permission. Headphones keep the metronome out of the microphone input.
+Vite runs on port 5173 by default. Microphone access requires a secure origin (HTTPS or localhost) and explicit browser permission. Headphones keep the metronome out of the microphone input.
 
 ```sh
 npm run check       # Svelte + TypeScript diagnostics
@@ -31,7 +31,7 @@ Browser tests use `/usr/bin/chromium`. Set `CHROMIUM_PATH` to another Chromium e
 - Follow a live sticking grid. The count-in is excluded from saved practice time and timing analysis.
 - Save completed or partial sessions, add reflections, and review practice time, timing estimates, and weekly goals.
 - Build a recurring weekly practice plan, then launch drills with your planned tempo and duration.
-- Enable optional microphone onset detection or an experimental webcam motion tracker.
+- Enable optional microphone onset detection for timing feedback.
 - Measure acoustic round-trip latency in a short, separate calibration test and save compensation for future sessions.
 - Export/import JSON backups. Import requires confirmation before replacing your data. Session deletion also requires confirmation.
 
@@ -66,7 +66,6 @@ src/
     analysis/microphone.ts      Microphone lifecycle and AudioWorklet connection
     analysis/calibrate.ts       Cancellable loopback capture and click scheduling
     analysis/latency.ts         Probe matching, robust latency estimate, route checks
-    analysis/camera.ts          Two-zone frame-difference motion experiment
     stores/practice.svelte.ts   Reactive history/plan store and browser persistence
     stores/audio-settings.svelte.ts  Device-specific latency/threshold persistence
     utils/timing.ts            Hit matching, timing statistics, calendar helpers
@@ -85,7 +84,5 @@ tests/
 ## Measurement limits
 
 Microphone analysis detects **amplitude transients**, not drum types or hand identity. It stores timestamps and aggregate results, never raw audio. Timing estimates depend on your microphone, room, threshold, and hardware latency. Use the calibration test or enter a known compensation; positive values shift detected hits earlier. At fast subdivisions, multiple hits can fall within the matching window; treat scores as approximate feedback, not a certification of accuracy.
-
-The webcam feature counts **motion bursts** in left and right image zones. Keep the camera fixed, with one hand in each zone and a stable background. It does not recognize poses, sticks, actual drum contact, or safe technique. No video is retained. Browser tests exercise synthetic media pipelines; real instrument and real camera accuracy still need validation on your hardware.
 
 The app uses `localStorage`, so history is specific to a browser and origin. Export backups before clearing site data, changing the address, or changing devices. There is no server or cloud synchronization. An in-progress session is saved when you end it or the timer completes; an unexpected tab closure can lose that session. Navigation is disabled while practicing to prevent accidental loss.

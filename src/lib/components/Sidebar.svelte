@@ -87,10 +87,6 @@
         hit. Device latency and room noise affect the estimates.
       </p>
       <p>
-        The experimental camera tool counts motion bursts in two hand zones. It does not evaluate
-        technique or detect contact with a drum.
-      </p>
-      <p>
         Your history lives in this browser. Export a backup from My progress before clearing browser
         data or changing devices. No account, uploads, or cloud sync.
       </p>
