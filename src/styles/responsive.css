@@ -182,23 +182,22 @@
   .start-button {
     min-width: 154px;
   }
-  .tracking-card {
-    padding: 16px;
+  .analysis-card {
+    padding: 20px 16px 0;
   }
-  .tracking-title {
-    gap: 8px;
+  .analysis-tabs {
+    gap: 16px;
+    flex-wrap: wrap;
   }
-  .tracking-title h2 {
-    font-size: 16px;
-  }
-  .tracking-title p {
+  .analysis-tabs > button {
     font-size: 14px;
   }
-  .tracking-title > svg {
+  .analysis-tabs .tiny-label {
     display: none;
   }
-  .tracking-switch {
-    gap: 6px;
+  .privacy-note {
+    margin: 0 -16px;
+    padding: 14px 16px;
   }
   .sensor-settings {
     grid-template-columns: 1fr;

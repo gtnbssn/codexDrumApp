@@ -76,7 +76,7 @@ test('loopback calibration measures, persists, and compensates a practice sessio
   test.setTimeout(35_000);
   await installLoopback(page);
   await page.goto('/');
-  await page.getByRole('switch', { name: 'Microphone tracking' }).click();
+  await page.getByRole('button', { name: 'Calibrate latency', exact: true }).click();
   await page.getByRole('button', { name: 'Start calibration', exact: true }).click();
   const apply = page.getByRole('button', { name: /^Use \d+ ms$/ });
   await expect(apply).toBeVisible({ timeout: 15_000 });
@@ -89,9 +89,9 @@ test('loopback calibration measures, persists, and compensates a practice sessio
     ),
   ).toBe(true);
   await apply.click();
-  await expect(page.getByRole('switch', { name: 'Microphone tracking' })).toBeChecked();
-  await expect(page.getByText('Use headphones', { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Audio calibration')).toContainText(`${measured} ms`);
+  await expect(page.getByLabel('Latency compensation in milliseconds')).toHaveValue(
+    String(measured),
+  );
   expect(
     await page.evaluate(
       () =>
@@ -99,9 +99,11 @@ test('loopback calibration measures, persists, and compensates a practice sessio
     ),
   ).toBe(0);
   await page.reload();
-  await expect(page.getByLabel('Audio calibration')).toContainText(`${measured} ms`);
-  await page.getByRole('switch', { name: 'Microphone tracking' }).click();
-  await expect(page.getByRole('switch', { name: 'Microphone tracking' })).toBeChecked();
+  await expect(page.getByLabel('Latency compensation in milliseconds')).toHaveValue(
+    String(measured),
+  );
+  await page.getByRole('button', { name: 'Enable microphone' }).click();
+  await expect(page.getByRole('button', { name: 'Disconnect microphone' })).toBeVisible();
   await page.getByRole('checkbox', { name: '1-bar count-in' }).uncheck();
   await page.evaluate(() => (window.__loopback.starts = []));
   await page.getByRole('button', { name: 'Start practice', exact: true }).click();
@@ -127,37 +129,21 @@ test('loopback calibration measures, persists, and compensates a practice sessio
   ).toBe(true);
   await page.getByRole('button', { name: 'Back to the practice room' }).click();
   await page.evaluate(() => (window.__loopback.inputId = 'different-microphone'));
-  await page.getByRole('switch', { name: 'Microphone tracking' }).click();
-  await expect(page.getByRole('status', { name: 'Tracking notice' })).toContainText(
-    'Your audio setup changed',
-  );
-  await expect(page.getByLabel('Audio calibration')).toContainText('Calibration required');
-  await expect(page.getByRole('switch', { name: 'Microphone tracking' })).not.toBeChecked();
-  expect(
-    await page.evaluate(() =>
-      window.__loopback.streams.every((s) => s.getTracks().every((t) => t.readyState === 'ended')),
-    ),
-  ).toBe(true);
+  await page.getByRole('button', { name: 'Enable microphone' }).click();
+  await expect(page.getByRole('status')).toContainText('Compensation was reset to 0 ms');
+  await expect(page.getByLabel('Latency compensation in milliseconds')).toHaveValue('0');
 });
 
 test('silence fails calibration and leaves the existing value untouched', async ({ page }) => {
   await installLoopback(page, true);
-  await page.addInitScript(() => {
-    localStorage.setItem(
-      'pocket.audio.v1',
-      JSON.stringify({ latencyMs: 77, threshold: 0.035, calibration: null }),
-    );
-  });
   await page.goto('/');
+  await page.getByLabel('Latency compensation in milliseconds').fill('77');
   await page.getByRole('button', { name: 'Calibrate latency', exact: true }).click();
   await page.getByRole('button', { name: 'Start calibration', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('Only 0/8 clicks', { timeout: 15_000 });
   await expect(page.getByRole('button', { name: /^Use \d+ ms$/ })).toHaveCount(0);
   await page.getByRole('button', { name: 'Close calibration', exact: true }).click();
-  expect(
-    await page.evaluate(() => JSON.parse(localStorage.getItem('pocket.audio.v1')!).latencyMs),
-  ).toBe(77);
-  await expect(page.getByRole('switch', { name: 'Microphone tracking' })).not.toBeChecked();
+  await expect(page.getByLabel('Latency compensation in milliseconds')).toHaveValue('77');
   expect(
     await page.evaluate(() =>
       window.__loopback.streams.every((s) => s.getTracks().every((t) => t.readyState === 'ended')),
@@ -170,9 +156,7 @@ test('cancellation stops capture and prevents further scheduled test clicks', as
   await page.goto('/');
   await page.getByRole('button', { name: 'Calibrate latency', exact: true }).click();
   await page.getByRole('button', { name: 'Start calibration', exact: true }).click();
-  await expect(page.getByRole('dialog').getByRole('status')).toContainText('2/8 clicks played', {
-    timeout: 5000,
-  });
+  await expect(page.getByRole('status')).toContainText('2/8 clicks played', { timeout: 5000 });
   await page.getByRole('button', { name: 'Cancel test', exact: true }).click();
   const count = await page.evaluate(() => window.__loopback.starts.length);
   await page.waitForTimeout(1400);
@@ -182,8 +166,7 @@ test('cancellation stops capture and prevents further scheduled test clicks', as
       window.__loopback.streams.every((s) => s.getTracks().every((t) => t.readyState === 'ended')),
     ),
   ).toBe(true);
-  await expect(page.getByRole('switch', { name: 'Microphone tracking' })).not.toBeChecked();
-  await expect(page.getByLabel('Audio calibration')).toContainText('Calibration required');
+  await expect(page.getByLabel('Latency compensation in milliseconds')).toHaveValue('0');
 });
 
 test('closing while microphone permission is pending cleans up a late stream', async ({ page }) => {
@@ -191,7 +174,7 @@ test('closing while microphone permission is pending cleans up a late stream', a
   await page.goto('/');
   await page.getByRole('button', { name: 'Calibrate latency', exact: true }).click();
   await page.getByRole('button', { name: 'Start calibration', exact: true }).click();
-  await expect(page.getByRole('dialog').getByRole('status')).toContainText('Connecting');
+  await expect(page.getByRole('status')).toContainText('Connecting');
   await page.getByRole('button', { name: 'Close calibration', exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.__loopback.streams.length)).toBe(1);
   await expect
@@ -218,45 +201,3 @@ test('calibration permission errors allow retry without changing compensation', 
   await expect(page.getByRole('alert')).toContainText('Microphone permission was not granted');
   await expect(page.getByRole('button', { name: 'Retry calibration' })).toBeEnabled();
 });
-
-for (const mismatch of ['manual offset', 'changed offset', 'changed threshold']) {
-  test(`${mismatch} cannot bypass required calibration`, async ({ page }) => {
-    await page.addInitScript((mismatch) => {
-      localStorage.setItem(
-        'pocket.audio.v1',
-        JSON.stringify({
-          latencyMs: mismatch === 'changed offset' ? 100 : 77,
-          threshold: mismatch === 'changed threshold' ? 0.05 : 0.035,
-          calibration:
-            mismatch === 'manual offset'
-              ? null
-              : {
-                  latencyMs: 77,
-                  threshold: 0.035,
-                  jitterMs: 2,
-                  consistent: 8,
-                  matched: 8,
-                  total: 8,
-                  reliable: true,
-                  reason: '',
-                  measuredAt: new Date().toISOString(),
-                  route: { inputId: '', inputLabel: '', outputLabel: '', sampleRate: 48000 },
-                },
-        }),
-      );
-      navigator.mediaDevices.getUserMedia = async () => {
-        throw new Error('Capture must not start before calibration.');
-      };
-    }, mismatch);
-    await page.goto('/');
-    const tracking = page.getByRole('switch', { name: 'Microphone tracking' });
-    await expect(tracking).not.toBeChecked();
-    await expect(page.getByText('Use headphones', { exact: true })).toHaveCount(0);
-    await tracking.click();
-    await expect(page.getByRole('dialog')).toContainText('Calibrate audio latency');
-    await expect(page.getByRole('alert')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Close calibration' }).click();
-    await expect(tracking).not.toBeChecked();
-    await expect(page.getByRole('button', { name: 'Start practice' })).toBeEnabled();
-  });
-}

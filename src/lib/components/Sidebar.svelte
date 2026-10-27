@@ -83,9 +83,12 @@
         session to save it, even if you don’t finish the timer.
       </p>
       <p>
-        Turn on Microphone tracking above the practice controls, then complete calibration for your
-        audio setup. Use headphones so the click doesn’t count as a hit. Device latency and room
-        noise affect the estimates.
+        Microphone feedback detects sound transients. Use headphones so the click doesn’t count as a
+        hit. Device latency and room noise affect the estimates.
+      </p>
+      <p>
+        The experimental camera tool counts motion bursts in two hand zones. It does not evaluate
+        technique or detect contact with a drum.
       </p>
       <p>
         Your history lives in this browser. Export a backup from My progress before clearing browser

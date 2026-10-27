@@ -43,7 +43,13 @@ export function validateData(value: unknown): value is PracticeData {
         s.endBpm <= 240 &&
         typeof s.completed === 'boolean' &&
         typeof s.notes === 'string' &&
-        isTiming(s.timing),
+        isTiming(s.timing) &&
+        (s.strokes === null ||
+          (s.strokes &&
+            Number.isFinite(s.strokes.left) &&
+            s.strokes.left >= 0 &&
+            Number.isFinite(s.strokes.right) &&
+            s.strokes.right >= 0)),
     ) &&
     Array.isArray(data.plan) &&
     data.plan.every(

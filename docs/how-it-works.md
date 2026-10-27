@@ -22,13 +22,9 @@ The engine reports both scheduled notes and visible ticks. `PracticeRoom` collec
 
 The session timer uses elapsed audio-clock time. Ending a session cancels future clicks, closes input streams, and saves a session if at least one second of practice elapsed. Very short starts/count-ins are discarded. Navigation is blocked during a session, and the browser is asked to warn before closing the tab.
 
-With positive microphone compensation, ending first freezes the practice duration and stops the click. Capture remains alive through the last note’s late-hit window plus the configured delay and a 60 ms processing allowance, then closes the input and saves. This wait follows the audio clock, with a wall-clock timeout; interrupted capture produces no timing score. This wait does not add practice time. Hit times are compensated before checking session boundaries. The first and last note receive a small early/late grace window, capped at half a subdivision so a count-in hit cannot become a practice hit.
+With positive microphone compensation, ending first freezes the practice duration and stops the click. Capture remains alive through the last note’s late-hit window plus the configured delay and a 60 ms processing allowance, then closes the input and saves. This wait follows the audio clock, with a wall-clock timeout; interrupted capture produces no timing score. Camera counts freeze immediately. This wait does not add practice time. Hit times are compensated before checking session boundaries. The first and last note receive a small early/late grace window, capped at half a subdivision so a count-in hit cannot become a practice hit.
 
 ## 3. Microphone input becomes timestamps
-
-`MicrophoneTracking.svelte` places an accessible on/off switch immediately above the main practice controls. Turning it on without a current reliable calibration opens the calibration dialog; applying the result continues the connection, while cancelling leaves tracking off. The active state shows a headphone reminder, input meter and session hit count. Switching is locked while practice runs, and ending practice releases capture.
-
-`hasCalibration()` requires a reliable saved measurement whose delay and detection threshold match the current settings. A legacy manual offset is insufficient. The audio route is verified on capture connection and again before starting tracked practice; a detected mismatch resets calibration, disconnects capture and requires recalibration. Manual adjustment controls are omitted so the measured settings stay together. Ordinary practice remains available with tracking off.
 
 `Microphone` connects an input stream to `public/onset-processor.js`, an AudioWorklet running on the audio thread. Each audio block is reduced to RMS amplitude. A transient must exceed the chosen threshold and rise above a decaying amplitude envelope. A 75 ms refractory period reduces duplicate detection from one hit's decay. This also limits detection of very fast rolls.
 
@@ -44,7 +40,7 @@ Detected times and scheduled times share one audio clock. The latency compensati
 
 The scheduling loop checks the audio clock; stalled/suspended audio, missed scheduling deadlines, or a wall-clock timeout fail the run. An `AbortSignal` cancels the timers and scheduled tones and disconnects the microphone. If permission arrives after cancellation, the late stream is also stopped. Calibration does not create sessions, save raw audio, change compensation automatically, or monitor the microphone through the speakers. The user explicitly applies a successful result.
 
-`audio-settings.svelte.ts` persists compensation, threshold, and optional measurement/route metadata under `pocket.audio.v1`. It is separate from history backups: calibration belongs to the local audio setup. Known microphone IDs, sample rates, and exposed default-output labels are compared on capture startup. A detected mismatch clears the measurement, resets compensation to zero and prevents tracking until recalibration. Some routing changes are invisible to browser APIs, so the UI also asks users to recalibrate when their setup changes. Older history files remain valid; new microphone sessions include an optional `latencyMs` recording the applied value.
+`audio-settings.svelte.ts` persists compensation, threshold, and optional measurement/route metadata under `pocket.audio.v1`. It is separate from history backups: calibration belongs to the local audio setup. Known microphone IDs, sample rates, and exposed default-output labels are compared on capture startup. A detected mismatch clears the measurement and resets compensation to zero. Some routing changes are invisible to browser APIs, so the UI also asks users to recalibrate when their setup changes. Older history files remain valid; new microphone sessions include an optional `latencyMs` recording the applied value.
 
 ## 4. Matching and scoring
 
@@ -58,18 +54,22 @@ The scheduling loop checks the audio clock; stalled/suspended audio, missed sche
 
 Misses and extras lower the score. A session with no captured hits scores zero. A session without microphone input has no timing score, rather than an invented zero or a passing score. At high speeds, the windows for neighboring notes overlap, so this simple nearest-note matching is approximate. Isolated time-domain scoring cannot identify which hand played a hit.
 
-## 5. Practice history is local
+## 5. Camera input becomes motion counts
+
+`StrokeCamera` downsamples each frame to 80 × 60 pixels. It compares RGB changes with the previous frame inside two zones. A rise in changed pixels counts as a motion burst, with a 150 ms per-zone cooldown. The image and zone labels are mirrored together. Counts are saved only while a session is running, after the count-in.
+
+This deliberately small, readable experiment has no pretrained model. Lighting changes, body motion, a moving camera, occlusion, and slow movements can all affect counts. It cannot infer contact, grip, or technique.
+
+## 6. Practice history is local
 
 `practice.svelte.ts` exposes one reactive `$state` object. Explicit functions change sessions, notes, plan items, or the weekly goal, then serialize data to `pocket.practice.v1` in `localStorage`. Views derive totals from real sessions. Weekly charts use local calendar days, Monday through Sunday. The planner is recurring, not a dated task checklist.
 
 Backups contain versioned JSON with sessions, plan items, and the weekly goal. `validateData()` checks imported data before asking to replace existing state. The application never evaluates imported text as code. If saving fails, in-memory data remains available and the UI asks you to export it.
 
-## 6. What the tests establish
+## 7. What the tests establish
 
-Unit tests exercise scoring, missed/extra hits, tempo rules, calendar boundaries, backward-compatible backup validation, and synthetic transient detection. Browser tests run actual Chromium against Vite: session saving/reloading, notes, drill selection, planner settings, backup flows, microphone worklet connection, and mobile overflow.
+Unit tests exercise scoring, missed/extra hits, tempo rules, calendar boundaries, backup validation, and synthetic transient detection. Browser tests run actual Chromium against Vite: session saving/reloading, notes, drill selection, planner settings, backup flows, microphone worklet connection, camera capture/cleanup, and mobile overflow.
 
 Calibration tests feed the real synthesized clicks through a known Web Audio delay into the actual onset AudioWorklet. They verify measurement, saved settings after reload, compensated scoring including a final in-flight hit, known device-change invalidation, silent-input rejection, permission errors, cancellation, and cleanup of late permission streams. Pure unit tests cover the median, outliers, missing hits, echoes, search-window boundaries, and unreliable jitter.
 
-These controlled audio fixtures verify the input pipeline and compensation logic. Real-world hit accuracy still needs instrument/device trials and a labeled dataset before making stronger performance claims.
-
-Tracking tests verify switch placement, keyboard operation, the active headphone reminder, switching off, capture cleanup, and the calibration gate for missing measurements or mismatched offsets/thresholds.
+The fake browser microphone and camera prove that the input pipelines work. They do not prove real-world hit accuracy or stroke recognition. Those need instrument/device trials and a more rigorous labeled dataset before making stronger performance claims.

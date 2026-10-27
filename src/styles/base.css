@@ -165,6 +165,13 @@ textarea::placeholder {
 .full-width {
   width: 100%;
 }
+.green-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+}
 .card {
   border: 1px solid var(--line);
   border-radius: 10px;

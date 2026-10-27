@@ -432,114 +432,74 @@
 .plan-card > .text-button {
   margin-top: 10px;
 }
-.tracking-card {
-  padding: 20px 24px;
-  margin-bottom: 16px;
+.analysis-card {
+  margin-top: 20px;
+  padding: 20px 24px 0;
+  overflow: hidden;
 }
-.tracking-heading,
-.tracking-title,
-.tracking-calibration,
-.tracking-switch {
-  display: flex;
-  align-items: center;
-}
-.tracking-heading {
-  justify-content: space-between;
-  gap: 16px;
-}
-.tracking-title {
-  gap: 12px;
-}
-.tracking-title > svg {
-  color: var(--coral);
-  flex-shrink: 0;
-}
-.tracking-title h2 {
+.analysis-card h2 {
   font-size: 18px;
 }
-.tracking-title p {
-  margin-top: 4px;
-  font-size: 14px;
-}
-.tracking-switch {
-  gap: 10px;
-  min-height: 44px;
-  font-size: 15px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-.switch-track {
+.analysis-tabs {
   display: flex;
-  align-items: center;
-  width: 48px;
-  height: 28px;
-  padding: 3px;
-  border-radius: 20px;
-  background: #65727d;
-}
-.switch-track > span {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 0.15s;
-}
-.tracking-switch[aria-checked='true'] .switch-track {
-  background: var(--coral);
-}
-.tracking-switch[aria-checked='true'] .switch-track > span {
-  transform: translateX(20px);
-}
-.tracking-calibration {
-  gap: 8px 20px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-  font-size: 14px;
-  color: var(--muted);
-}
-.tracking-calibration .text-button {
-  font-size: 14px;
-  min-height: 36px;
-}
-.headphone-notice {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-  padding: 12px 14px;
-  border: 1px solid #d3aa64;
-  border-radius: 6px;
-  background: #fff7e7;
-  color: #61450e;
-}
-.headphone-notice > svg {
-  flex-shrink: 0;
-}
-.headphone-notice strong {
-  display: block;
-  font-size: 16px;
-}
-.headphone-notice span {
-  display: block;
-  margin-top: 2px;
-  font-size: 14px;
-}
-.tracking-input {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 14px;
-  font-size: 14px;
-  color: var(--muted);
-}
-.tracking-input .input-meter {
-  flex: 1;
-  margin: 0;
-}
-.tracking-message {
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
   margin-top: 12px;
+}
+.analysis-tabs > button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: 15px;
-  color: #70471b;
+  min-height: 48px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  padding: 10px 0;
+}
+.analysis-tabs > button.chosen {
+  color: var(--coral);
+  border-color: var(--coral);
+}
+.analysis-content {
+  padding: 20px 0 14px;
+}
+.analysis-content h4 {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+.analysis-content p {
+  font-size: 15px;
+}
+.analysis-content .text-button {
+  margin-top: 10px;
+}
+.analysis-footnote {
+  display: flex;
+  gap: 8px;
+  align-items: start;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  padding-bottom: 16px;
+}
+.analysis-footnote > svg {
+  margin-top: 4px;
+}
+.privacy-note {
+  display: flex;
+  align-items: start;
+  gap: 7px;
+  background: #f7f9fa;
+  border-top: 1px solid var(--line);
+  margin: 0 -24px;
+  padding: 14px 24px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.privacy-note > svg {
+  margin-top: 3px;
+  color: var(--green);
 }
 .input-meter {
   height: 8px;
@@ -572,6 +532,72 @@
   display: block;
   width: 100%;
   margin: 16px 0;
+}
+.sensor-settings + .fine-print {
+  margin-bottom: 16px;
+}
+.camera-preview {
+  position: relative;
+  max-width: 400px;
+  aspect-ratio: 4/3;
+  margin: 0 auto 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #26333d;
+}
+.camera-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.camera-zones {
+  position: absolute;
+  inset: 15% 10% 10%;
+  display: flex;
+  gap: 8px;
+}
+.camera-zones > span {
+  position: relative;
+  flex: 1;
+  padding: 10px;
+  border: 2px dashed white;
+  border-radius: 8px;
+  color: white;
+  font-size: 18px;
+  text-shadow: 0 1px 3px black;
+}
+.camera-zones b {
+  float: right;
+}
+.camera-zones i {
+  position: absolute;
+  inset: 0;
+  background: #b7472b60;
+}
+
+/* Calibration is separate from a timed practice session. */
+.latency-settings {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 18px 0;
+  margin-bottom: 18px;
+}
+.latency-settings .section-heading {
+  flex-wrap: wrap;
+}
+.latency-settings > .fine-print {
+  margin-top: 10px;
+}
+.latency-value {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+.latency-value input {
+  width: 112px;
 }
 .calibration-instructions {
   padding-left: 22px;

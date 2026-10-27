@@ -19,16 +19,16 @@
   import { drills, findDrill } from '../data/drills';
   import { Metronome } from '../audio/metronome';
   import { Microphone } from '../analysis/microphone';
+  import { StrokeCamera } from '../analysis/camera';
   import { analyzeTiming, formatTime, localDay, weekDays } from '../utils/timing';
   import { practice, addSession } from '../stores/practice.svelte';
-  import MicrophoneTracking from './MicrophoneTracking.svelte';
+  import AnalysisPanel from './AnalysisPanel.svelte';
   import SessionSummary from './SessionSummary.svelte';
   import LatencyCalibration from './LatencyCalibration.svelte';
   import {
     audioSettings,
     applyCalibration,
     resetCalibration,
-    hasCalibration,
   } from '../stores/audio-settings.svelte';
   import { routeChanged } from '../analysis/latency';
   import type { SavedCalibration } from '../analysis/latency';
@@ -57,7 +57,6 @@
   let starting = $state(false);
   let finishing = $state(false);
   let calibrationOpen = $state(false);
-  let enableAfterCalibration = false;
   let calibrationNotice = $state('');
   let elapsed = $state(0);
   let step = $state(-1);
@@ -68,13 +67,18 @@
   let error = $state('');
   let summary = $state<Session | null>(null);
   let micEnabled = $state(false);
-  let micConnecting = $state(false);
+  let cameraEnabled = $state(false);
+  let sensorBusy = $state(false);
   let level = $state(0);
   let hitCount = $state(0);
+  let strokes = $state({ left: 0, right: 0 });
+  let motion = $state([0, 0]);
   let threshold = $derived(audioSettings.threshold);
   let latency = $derived(audioSettings.latencyMs);
+  let video = $state<HTMLVideoElement>();
   let engine: Metronome | null = null;
   let microphone: Microphone | null = null;
+  let camera: StrokeCamera | null = null;
   let timer: ReturnType<typeof setInterval>;
   let drainTimer: ReturnType<typeof setTimeout>;
   let captureEndTime: number | null = null;
@@ -113,49 +117,28 @@
 
   function mediaError(reason: unknown) {
     if (reason instanceof DOMException && reason.name === 'NotAllowedError')
-      return 'Permission was not granted. Allow access in your browser settings, then try again. You can practice without microphone analysis.';
+      return 'Permission was not granted. Allow access in your browser settings, then try again. You can practice without sensors.';
     if (reason instanceof DOMException && reason.name === 'NotFoundError')
       return 'No input device was found. Connect a device, then try again.';
     return reason instanceof Error
       ? reason.message
-      : 'Could not connect to the device. You can practice without microphone analysis.';
-  }
-
-  function disconnectMic() {
-    microphone?.disconnect();
-    microphone = null;
-    micEnabled = false;
-    level = 0;
-  }
-
-  async function checkAudioSetup(input: Microphone) {
-    const route = await input.getRoute(audio().context);
-    if (disposed) return false;
-    if (audioSettings.calibration && routeChanged(audioSettings.calibration.route, route)) {
-      resetCalibration();
-      calibrationNotice = 'Your audio setup changed. Calibrate again before turning tracking on.';
-    }
-    return hasCalibration();
+      : 'Could not connect to the device. You can practice without sensors.';
   }
 
   async function toggleMic() {
-    if (running || starting || micConnecting || calibrationOpen) return;
     error = '';
     if (micEnabled) {
-      disconnectMic();
+      microphone?.disconnect();
+      microphone = null;
+      micEnabled = false;
+      level = 0;
       return;
     }
-    if (!hasCalibration()) {
-      openCalibration(true);
-      return;
-    }
-    micConnecting = true;
+    sensorBusy = true;
     const candidate = new Microphone();
-    microphone = candidate; // Own pending capture too, so leaving the page can cancel it.
     try {
       const clock = audio();
       await clock.context.resume();
-      if (disposed) return;
       await candidate.connect(
         clock.context,
         (time) => {
@@ -171,40 +154,74 @@
         },
         (value) => (level = value),
       );
-      if (!(await checkAudioSetup(candidate))) {
-        disconnectMic();
+      const route = await candidate.getRoute(clock.context);
+      if (disposed) {
+        candidate.disconnect();
         return;
       }
-      candidate.setThreshold(threshold);
-      hitCount = 0;
+      microphone = candidate;
+      if (audioSettings.calibration && routeChanged(audioSettings.calibration.route, route)) {
+        resetCalibration();
+        calibrationNotice =
+          'Your microphone, output device, or sample rate changed. Compensation was reset to 0 ms; calibrate this audio setup.';
+      }
+      microphone.setThreshold(threshold);
       micEnabled = true;
     } catch (reason) {
-      disconnectMic();
-      if (!disposed) error = mediaError(reason);
+      candidate.disconnect();
+      error = mediaError(reason);
     } finally {
-      micConnecting = false;
+      sensorBusy = false;
     }
   }
 
-  function openCalibration(enableTracking = micEnabled) {
-    if (running || micConnecting || starting) return;
-    enableAfterCalibration = enableTracking;
-    disconnectMic();
+  function openCalibration() {
+    if (running || sensorBusy || starting) return;
+    microphone?.disconnect();
+    microphone = null;
+    micEnabled = false;
+    level = 0;
     error = '';
     calibrationOpen = true;
   }
 
-  function closeCalibration() {
-    calibrationOpen = false;
-    enableAfterCalibration = false;
-  }
-
-  async function useCalibration(result: SavedCalibration) {
+  function useCalibration(result: SavedCalibration) {
     applyCalibration(result);
     calibrationNotice = '';
-    const shouldEnable = enableAfterCalibration;
-    closeCalibration();
-    if (shouldEnable) await toggleMic();
+    calibrationOpen = false;
+  }
+
+  async function toggleCamera() {
+    error = '';
+    if (cameraEnabled) {
+      camera?.disconnect();
+      camera = null;
+      cameraEnabled = false;
+      return;
+    }
+    if (!video) return;
+    sensorBusy = true;
+    const candidate = new StrokeCamera();
+    try {
+      await candidate.connect(
+        video,
+        (side) => {
+          if (running && !finishing && !isCountIn) strokes[side]++;
+        },
+        (left, right) => (motion = [left, right]),
+      );
+      if (disposed) {
+        candidate.disconnect();
+        return;
+      }
+      camera = candidate;
+      cameraEnabled = true;
+    } catch (reason) {
+      candidate.disconnect();
+      error = mediaError(reason);
+    } finally {
+      sensorBusy = false;
+    }
   }
 
   async function start() {
@@ -214,16 +231,12 @@
       const clock = audio();
       await clock.context.resume();
       if (disposed) return;
-      if (micEnabled && microphone && !(await checkAudioSetup(microphone))) {
-        disconnectMic();
-        return;
-      }
-      if (disposed) return;
       clock.volume = volume / 100;
       clock.muted = muted;
       expected = [];
       observed = [];
       hitCount = 0;
+      strokes = { left: 0, right: 0 };
       elapsed = 0;
       captureEndTime = null;
       finishing = false;
@@ -303,6 +316,7 @@
                 )
               : null,
           latencyMs: micEnabled ? latency : undefined,
+          strokes: cameraEnabled ? { ...strokes } : null,
         };
         addSession(session);
         summary = session;
@@ -312,7 +326,13 @@
       onRunning(false);
       step = -1;
       isCountIn = false;
-      disconnectMic();
+      microphone?.disconnect();
+      microphone = null;
+      micEnabled = false;
+      level = 0;
+      camera?.disconnect();
+      camera = null;
+      cameraEnabled = false;
     };
     // Input for the final played notes can still be in flight after the click stops.
     // Keep capture alive briefly; use the fixed corrected-time boundary above.
@@ -337,6 +357,7 @@
     clearInterval(timer);
     clearTimeout(drainTimer);
     microphone?.disconnect();
+    camera?.disconnect();
     void engine?.destroy();
   });
 </script>
@@ -347,7 +368,7 @@
       event.key === 'Enter' &&
       event.target === document.body &&
       !summary &&
-      !micConnecting &&
+      !sensorBusy &&
       !starting &&
       !finishing &&
       !calibrationOpen
@@ -382,18 +403,6 @@
           {#if drill.id === item.id}<span class="selection-tick"><Check size={11} /></span>{/if}
         </button>{/each}
     </div>
-
-    <MicrophoneTracking
-      enabled={micEnabled}
-      busy={micConnecting}
-      {running}
-      {level}
-      hits={hitCount}
-      toggle={toggleMic}
-      calibrate={() => openCalibration()}
-      notice={calibrationNotice}
-      {error}
-    />
 
     <section class="metronome-card card" aria-label="Practice controls">
       <div class="metronome-heading">
@@ -525,7 +534,7 @@
         </div>
         <button
           class="primary-button start-button"
-          disabled={starting || micConnecting || finishing}
+          disabled={starting || sensorBusy || finishing}
           onclick={() => (running ? finish() : start())}
         >
           {#if finishing}Collecting final hits…{:else if running}<Square
@@ -536,7 +545,26 @@
               : 'Start practice'}{/if}
         </button>
       </div>
+      {#if error && !micEnabled && !cameraEnabled}<p class="inline-error" role="alert">
+          {error}
+        </p>{/if}
     </section>
+    <AnalysisPanel
+      {micEnabled}
+      {cameraEnabled}
+      busy={sensorBusy}
+      {running}
+      {level}
+      hits={hitCount}
+      {strokes}
+      {motion}
+      calibrate={openCalibration}
+      {calibrationNotice}
+      bind:video
+      {toggleMic}
+      {toggleCamera}
+      {error}
+    />
   </div>
 
   <aside class="practice-aside">
@@ -603,7 +631,7 @@
 {#if calibrationOpen}<LatencyCalibration
     getContext={() => audio().context}
     apply={useCalibration}
-    close={closeCalibration}
+    close={() => (calibrationOpen = false)}
   />{/if}
 {#if summary}<SessionSummary
     session={summary}

@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { seedCalibration } from './helpers/calibration';
 
 test('practice controls, a saved session, notes, and persistence', async ({ page }) => {
   const errors: string[] = [];
@@ -56,11 +55,9 @@ test('planner creates a custom duration and starts the configured drill', async 
 });
 
 test('microphone worklet connects and saves a measured session', async ({ page }) => {
-  await seedCalibration(page);
   await page.goto('/');
-  await page.getByRole('switch', { name: 'Microphone tracking' }).click();
-  await expect(page.getByRole('switch', { name: 'Microphone tracking' })).toBeChecked();
-  await expect(page.getByText('Use headphones', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Enable microphone' }).click();
+  await expect(page.getByRole('button', { name: 'Disconnect microphone' })).toBeVisible();
   await page.getByRole('checkbox', { name: '1-bar count-in' }).uncheck();
   await page.getByRole('button', { name: 'Start practice' }).click();
   await page.waitForTimeout(1800);
@@ -72,6 +69,24 @@ test('microphone worklet connects and saves a measured session', async ({ page }
   expect(sessions[0].timing.expected).toBeGreaterThan(0);
   expect(sessions[0].timing).not.toBeNull();
   // A fake audio source validates the input pipeline, not real-world accuracy.
+});
+
+test('camera connects to the local motion pipeline and releases its tracks', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('tab', { name: /Camera tracking/ }).click();
+  await page.getByRole('button', { name: 'Enable camera' }).click();
+  await expect(page.getByRole('button', { name: 'Disconnect camera' })).toBeVisible();
+  await expect(page.locator('video')).toBeVisible();
+  expect(
+    await page.locator('video').evaluate((video: HTMLVideoElement) => video.readyState),
+  ).toBeGreaterThanOrEqual(2);
+  await page.getByRole('button', { name: 'Disconnect camera' }).click();
+  const state = await page
+    .locator('video')
+    .evaluate(
+      (video: HTMLVideoElement) => (video.srcObject as MediaStream).getTracks()[0].readyState,
+    );
+  expect(state).toBe('ended');
 });
 
 test('mobile layout has no horizontal overflow and navigation works', async ({ page }) => {
@@ -153,14 +168,13 @@ test('permission denial explains the issue and keeps ordinary practice available
 }) => {
   const context = await browser.newContext({ permissions: [] });
   const page = await context.newPage();
-  await seedCalibration(page);
   await page.addInitScript(() => {
     navigator.mediaDevices.getUserMedia = async () => {
       throw new DOMException('Denied', 'NotAllowedError');
     };
   });
   await page.goto('http://127.0.0.1:5173');
-  await page.getByRole('switch', { name: 'Microphone tracking' }).click();
+  await page.getByRole('button', { name: 'Enable microphone' }).click();
   await expect(page.getByRole('alert').first()).toContainText('Permission was not granted');
   await expect(page.getByRole('button', { name: 'Start practice' })).toBeEnabled();
   await context.close();

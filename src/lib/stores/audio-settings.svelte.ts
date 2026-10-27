@@ -70,14 +70,17 @@ function save() {
       'Compensation is active on this page, but browser storage could not save it.';
   }
 }
-/** A manual offset or a changed threshold cannot substitute for calibration. */
-export function hasCalibration() {
-  const calibration = audioSettings.calibration;
-  return Boolean(
-    calibration?.reliable &&
-    calibration.latencyMs === audioSettings.latencyMs &&
-    calibration.threshold === audioSettings.threshold,
-  );
+export function setLatency(value: number) {
+  if (!Number.isFinite(value)) return;
+  audioSettings.latencyMs = Math.round(Math.min(1000, Math.max(-200, value)));
+  if (audioSettings.calibration?.latencyMs !== audioSettings.latencyMs)
+    audioSettings.calibration = null;
+  save();
+}
+export function setThreshold(value: number) {
+  if (!Number.isFinite(value)) return;
+  audioSettings.threshold = Math.min(0.15, Math.max(0.005, value));
+  save();
 }
 export function applyCalibration(result: SavedCalibration) {
   if (!result.reliable) return;
