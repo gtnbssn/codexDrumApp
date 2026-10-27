@@ -359,6 +359,18 @@
         </button>{/each}
     </div>
 
+    <AnalysisPanel
+      {micEnabled}
+      busy={sensorBusy}
+      {running}
+      {level}
+      hits={hitCount}
+      calibrate={openCalibration}
+      {calibrationNotice}
+      {toggleMic}
+      {error}
+    />
+
     <section class="metronome-card card" aria-label="Practice controls">
       <div class="metronome-heading">
         <div>
@@ -504,17 +516,6 @@
           {error}
         </p>{/if}
     </section>
-    <AnalysisPanel
-      {micEnabled}
-      busy={sensorBusy}
-      {running}
-      {level}
-      hits={hitCount}
-      calibrate={openCalibration}
-      {calibrationNotice}
-      {toggleMic}
-      {error}
-    />
   </div>
 
   <aside class="practice-aside">
